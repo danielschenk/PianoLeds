@@ -24,7 +24,7 @@ void BV4513_init()
 
 char nthdigit(int x, int n)
 {
-    static int powersof10[4] = {1, 10, 100, 1000};
+    static const int powersof10[4] = {1, 10, 100, 1000};
     return ((x / powersof10[n]) % 10) + '0';
 }
 
