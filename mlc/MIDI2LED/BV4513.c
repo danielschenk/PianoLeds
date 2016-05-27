@@ -6,8 +6,9 @@
  */ 
 
 #include "BV4513.h"
-#include <avr/delay.h>
+#include "globals.h"
 
+#include <util/delay.h>
 
 void BV4513_init() 
 {
