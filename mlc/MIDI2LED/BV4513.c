@@ -7,10 +7,7 @@
 
 #include "BV4513.h"
 #include <avr/delay.h>
-//#include "TWI_Master.h"
 
-enum BV4513_writeStateEnum BV4513_writeState = start;
-unsigned char BV4513_data[4];
 
 void BV4513_init() 
 {
@@ -27,17 +24,6 @@ char nthdigit(int x, int n)
     static const int powersof10[4] = {1, 10, 100, 1000};
     return ((x / powersof10[n]) % 10) + '0';
 }
-
-/*
-void BV4513_writeNextByte() 
-{
-	switch(BV4513_writeState)
-	{
-		case start:
-			
-	}
-}
-*/
 
 void BV4513_writeDigit(unsigned char number, unsigned char digit)
 {
