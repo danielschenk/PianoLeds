@@ -94,12 +94,11 @@ int main(void)
 	
 	#else
 	//---------------------DEFAULT OR DEBUG BUILD-------------------------------
-	//BV4513_init();
 	ledInit();
 	midiInit();
 	timerInit();
 	
-	#ifdef displayOn
+	#if BUILD_DISPLAY
 	BV4513_init();
 	#endif
 	
@@ -173,7 +172,7 @@ ISR(TIMER1_COMPA_vect)
 	static uint8_t renderFreqDiv = 0;
 	static uint8_t heartBeatLedCount = 0;
 	static uint8_t midiIndicatorCount = 0;
-	#ifdef displayOn
+	#if BUILD_DISPLAY
 	if(midiIndicatorSet)
 	{
 		if(midiIndicatorCount>=100)

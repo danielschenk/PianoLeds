@@ -13,7 +13,7 @@
 #define GLOBALS_H_
 #define F_CPU 20000000UL //!< CPU clock frequency
 
-//#define displayOn
+#define BUILD_DISPLAY 1
 
 
 #endif /* GLOBALS_H_ */
