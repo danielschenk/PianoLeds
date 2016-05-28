@@ -1,0 +1,32 @@
+
+Microsoft Visual Studio Solution File, Format Version 11.00
+# AvrStudio Solution File, Format Version 11.00
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "MIDI2LED", "MIDI2LED\MIDI2LED_6_1.cproj", "{62BEF4CE-5952-493D-9153-158ECE9ECB20}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		basictest|AVR = basictest|AVR
+		Debug|AVR = Debug|AVR
+		displaytest|AVR = displaytest|AVR
+		ledtest|AVR = ledtest|AVR
+		miditodisplaytest|AVR = miditodisplaytest|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{62BEF4CE-5952-493D-9153-158ECE9ECB20}.basictest|AVR.ActiveCfg = basictest|AVR
+		{62BEF4CE-5952-493D-9153-158ECE9ECB20}.basictest|AVR.Build.0 = basictest|AVR
+		{62BEF4CE-5952-493D-9153-158ECE9ECB20}.Debug|AVR.ActiveCfg = Debug|AVR
+		{62BEF4CE-5952-493D-9153-158ECE9ECB20}.Debug|AVR.Build.0 = Debug|AVR
+		{62BEF4CE-5952-493D-9153-158ECE9ECB20}.displaytest|AVR.ActiveCfg = displaytest|AVR
+		{62BEF4CE-5952-493D-9153-158ECE9ECB20}.displaytest|AVR.Build.0 = displaytest|AVR
+		{62BEF4CE-5952-493D-9153-158ECE9ECB20}.ledtest|AVR.ActiveCfg = ledtest|AVR
+		{62BEF4CE-5952-493D-9153-158ECE9ECB20}.ledtest|AVR.Build.0 = ledtest|AVR
+		{62BEF4CE-5952-493D-9153-158ECE9ECB20}.miditodisplaytest|AVR.ActiveCfg = miditodisplaytest|AVR
+		{62BEF4CE-5952-493D-9153-158ECE9ECB20}.miditodisplaytest|AVR.Build.0 = miditodisplaytest|AVR
+		{62BEF4CE-5952-493D-9153-158ECE9ECB20}.Release|AVR.ActiveCfg = Release|AVR
+		{62BEF4CE-5952-493D-9153-158ECE9ECB20}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
