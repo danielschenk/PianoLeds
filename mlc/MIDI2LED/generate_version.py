@@ -39,6 +39,7 @@ output = """
 #define VERSION_STRING "{git_describe}"
 #endif
 
+extern const char *g_version_string;
 
 #endif /* {guard_name} */
 """.format(**locals())
