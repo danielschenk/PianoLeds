@@ -20,26 +20,31 @@ void BV4513_init()
 	BV4513_clear();
 }
 
-char nthdigit(int x, int n)
+/** @brief Write a digit to the display
+ * 
+ * Digit positions on the display when front-facing:
+ * _________________________
+ * |     |     |     |     |
+ * |  0  |  1  |  2  |  3  |
+ * |    .|    .|    .|    .|
+ * -------------------------
+ * @param[in]    val    Digit value to write
+ * @param[in]    pos    Digit position to write
+ */
+void BV4513_writeDigit(unsigned char val, unsigned char pos)
 {
-    static const int powersof10[4] = {1, 10, 100, 1000};
-    return ((x / powersof10[n]) % 10) + '0';
-}
-
-void BV4513_writeDigit(unsigned char number, unsigned char digit)
-{
-	unsigned char data[4] = {BV4513_addr, 4, digit, number};
+	unsigned char data[4] = {BV4513_addr, 4, pos, val};
 	TWI_Start_Transceiver_With_Data(data, 4);
 }
 
 void BV4513_writeNumber(int number)
 {
-	unsigned char data[4] = {BV4513_addr, 4, 0, 0};
-	for(int i=0; i<3; i++)
+	/* Least significant digit is at pos 3 on the display */
+	for(int8_t pos=3; pos>=0; pos--)
 	{ 
-		data[2] = (unsigned char)i;
-		data[3] = (unsigned char)nthdigit(number, i);
-		TWI_Start_Transceiver_With_Data(data, 4);
+		uint8_t digit_val = number % 10;
+		BV4513_writeDigit(digit_val, pos);
+		number /= 10;
 	}
 }
 

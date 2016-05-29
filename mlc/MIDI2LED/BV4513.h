@@ -18,7 +18,7 @@ void BV4513_writeNumber(int number);
 void BV4513_init();
 void BV4513_clear();
 //void BV4513_writeNextByte();
-void BV4513_writeDigit(unsigned char number, unsigned char digit);
+void BV4513_writeDigit(unsigned char val, unsigned char pos);
 void BV4513_setDecimalPoint(unsigned char digit, unsigned char enable);
 enum BV4513_writeStateEnum
 {

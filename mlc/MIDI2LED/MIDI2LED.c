@@ -56,9 +56,15 @@ int main(void)
 	while (1)
 	{
 		BV4513_writeDigit(1, 1);
-		_delay_ms(50);
+		_delay_ms(500);
 		BV4513_writeDigit(2, 1);
-		_delay_ms(50);
+		_delay_ms(500);
+		
+		for(int n=9; n<10000; n++)
+		{
+			BV4513_writeNumber(n);
+			_delay_ms(50);
+		}
 	}
 	
 	#elif BUILD_MIDITODISPLAYTEST
