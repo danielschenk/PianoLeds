@@ -50,7 +50,7 @@ int main(void)
 	MCUCR = (0<<JTD);
 	
 	//----------------------VARIOUS TESTING BUILDS-----------------------------------------------
-	#ifdef build_displaytest
+	#if BUILD_DISPLAYTEST
 	BV4513_init();
 	sei();
 	while (1)
@@ -61,7 +61,7 @@ int main(void)
 		_delay_ms(50);
 	}
 	
-	#elif build_miditodisplaytest
+	#elif BUILD_MIDITODISPLAYTEST
 	BV4513_init();
 	midiInit();
 	sei();
@@ -70,7 +70,7 @@ int main(void)
 		
 	}
 	
-	#elif build_basictest
+	#elif BUILD_BASICTEST
 	DDRD = 0xFF;
 	while(1)
 	{
@@ -80,7 +80,7 @@ int main(void)
 		_delay_ms(1);
 	}
 	
-	#elif build_ledtest
+	#elif BUILD_LEDTEST
 	ledInit();
 	sei(); //Enable global interrupts
 	ledSetAutoWrite(1);
@@ -140,7 +140,7 @@ ISR(USART0_RX_vect)
 	midiHandleByte();
 	//dummy = 0;
 	
-	#ifdef build_miditodisplaytest
+	#if BUILD_MIDITODISPLAYTEST
 	midiDisplayNote();
 	#endif
 	
