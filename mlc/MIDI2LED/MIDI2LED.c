@@ -15,12 +15,15 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
+#include <stdio.h>
+#include <stdbool.h>
 
 
 #include "ledstrip.h"
 #include "BV4513.h"
 #include "midi.h"
 #include "timer.h"
+#include "version.h"
 
 //#include "TWI_Master.h"
 
@@ -30,7 +33,8 @@
 // extern uint8_t ledsB[ledsConnected];
 // 
 extern unsigned int midiIndicatorSet;
-
+/* This is read from timer interrupt! */
+static volatile bool g_enable_indicators = false;
 
 unsigned char dummy = 0;
 
@@ -41,6 +45,25 @@ void toggleHeartBeatLed()
 	static unsigned char heartBeadLed = 0;
 	heartBeadLed = !heartBeadLed;
 	BV4513_setDecimalPoint(3, heartBeadLed);
+}
+
+static void displayFirmwareVersion()
+{
+	BV4513_clear();
+	const char * fmt;
+	int pos;
+	if(VERSION_MINOR/10 >= 10) {
+		fmt = "%1u.%2u";
+		pos = 1;
+	}
+	else {
+		fmt = "%1u.%1u";
+		pos = 2;
+	}
+	
+	char s[8];
+	sprintf(s, fmt, VERSION_MAJOR, VERSION_MINOR);
+	BV4513_writeString(s, pos);
 }
 
 int main(void)
@@ -107,10 +130,15 @@ int main(void)
 	#if BUILD_DISPLAY
 	BV4513_init();
 	#endif
-	
-	//BV4513_writeNumber(ledMode);
-	
 	sei(); //Enable global interrupts
+	
+	#if BUILD_DISPLAY
+	displayFirmwareVersion();
+	_delay_ms(2000);
+	BV4513_clear();
+	g_enable_indicators = true;
+	//BV4513_writeNumber(ledMode);
+	#endif
 	
 	ledSetAutoWrite(0);
 	
@@ -179,7 +207,7 @@ ISR(TIMER1_COMPA_vect)
 	static uint8_t heartBeatLedCount = 0;
 	static uint8_t midiIndicatorCount = 0;
 	#if BUILD_DISPLAY
-	if(midiIndicatorSet)
+	if(g_enable_indicators && midiIndicatorSet)
 	{
 		if(midiIndicatorCount>=100)
 		{
@@ -192,7 +220,7 @@ ISR(TIMER1_COMPA_vect)
 	
 	heartBeatLedCount++;
 	
-	if(heartBeatLedCount>=50)
+	if(g_enable_indicators && heartBeatLedCount>=50)
 	{
 		toggleHeartBeatLed();
 		heartBeatLedCount = 0;
