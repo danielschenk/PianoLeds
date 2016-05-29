@@ -9,6 +9,7 @@
 #include "globals.h"
 
 #include <util/delay.h>
+#include <string.h>
 
 void BV4513_init() 
 {
@@ -39,12 +40,42 @@ void BV4513_writeDigit(unsigned char val, unsigned char pos)
 
 void BV4513_writeNumber(int number)
 {
+	BV4513_clear();
 	/* Least significant digit is at pos 3 on the display */
 	for(int8_t pos=3; pos>=0; pos--)
 	{ 
 		uint8_t digit_val = number % 10;
 		BV4513_writeDigit(digit_val, pos);
 		number /= 10;
+	}
+}
+
+void BV4513_writeString(const char * s, int pos)
+{
+	BV4513_clear();
+	int curr_pos = pos;
+	for(const char *p = s; *p != NULL; p++)
+	{
+		if(curr_pos > 3)
+			break; /* Reached end of display */
+		
+		char c = *p;
+		if(c == '.')
+		{
+			/* Special feature: enable dot on just-written position */
+			if(curr_pos-1 >= 0 && curr_pos-1 >= pos)
+				BV4513_setDecimalPoint(curr_pos-1, 1);
+			continue;
+		}
+		else if(c >= '0' && c <= '9')
+			c -= '0'; /* ASCII digit to plain value */
+		else if(c == ' ')
+			continue;
+		else
+			continue; /* not supported */
+		
+		BV4513_writeDigit(c, curr_pos);
+		curr_pos++;
 	}
 }
 
