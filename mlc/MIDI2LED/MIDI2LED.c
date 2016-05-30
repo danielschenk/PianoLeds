@@ -17,6 +17,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 #include <util/delay.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -61,6 +62,15 @@ static void displayBuildNumber()
 	
 	char s[5];
 	sprintf(s, fmt, prefix, VERSION_COMMITS_PAST_TAG);
+	BV4513_writeString(s, 0);
+}
+
+static void displayLedMode(unsigned int value)
+{
+	BV4513_clear();
+	char s[5];
+	static const char fmt[] PROGMEM = "P%3u";
+	sprintf_P(s, fmt, value);
 	BV4513_writeString(s, 0);
 }
 
@@ -153,16 +163,23 @@ int main(void)
 	displayBuildNumber();
 	_delay_ms(500);
 	BV4513_clear();
-	g_enable_indicators = true;
-	//BV4513_writeNumber(ledMode);
+	displayLedMode(ledMode);
+	//g_enable_indicators = false;
 	#endif
 	
 	ledSetAutoWrite(0);
 	
 	//uint8_t ledTestSetpoint = 255;
 	
+	static unsigned int ledModePrevious = 0;
+	
 	while(1) //Keep waiting for interrupts
     {
+		if(ledMode != ledModePrevious)
+		{
+			displayLedMode(ledMode);
+			ledModePrevious = ledMode;
+		}
 		if(ledMode==0)
 		{
 			ledTestLoops();
