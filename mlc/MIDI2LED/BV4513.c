@@ -11,8 +11,11 @@
 #include <util/delay.h>
 #include <string.h>
 
-static const char char_table_start = '0';
+static const char char_table_start = '-';
 static const char char_table[] = {
+	0x40, /* - */
+	0x80, /* . */
+	0x00, /* / */
 	0x3f, /* 0 */
 	0x06, /* 1 */
 	0x5b, /* 2 */
@@ -43,7 +46,7 @@ static const char char_table[] = {
 	0x00, /* K */
 	0x38, /* L */
 	0x00, /* M */
-	0x54, /* N */
+	0x37, /* N */
 	0x5c, /* O */
 	0x73, /* P */
 	0x00, /* Q */
@@ -62,7 +65,7 @@ static const char char_table[] = {
 	0x00, /* ^ */
 	0x00, /* _ */
 	0x00, /* ` */
-	0x77, /* a */
+	0x5f, /* a */
 	0x7c, /* b */
 	0x58, /* c */
 	0x5e, /* d */
@@ -75,7 +78,7 @@ static const char char_table[] = {
 	0x00, /* k */
 	0x38, /* l */
 	0x00, /* m */
-	0x00, /* n */
+	0x54, /* n */
 	0x5c, /* o */
 	0x73, /* p */
 	0x00, /* q */
