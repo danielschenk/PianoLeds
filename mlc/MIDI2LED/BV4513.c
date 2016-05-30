@@ -54,7 +54,7 @@ void BV4513_writeString(const char * s, int pos)
 {
 	BV4513_clear();
 	int curr_pos = pos;
-	for(const char *p = s; *p != NULL; p++)
+	for(const char *p = s; *p != 0; p++)
 	{
 		if(curr_pos > 3)
 			break; /* Reached end of display */
