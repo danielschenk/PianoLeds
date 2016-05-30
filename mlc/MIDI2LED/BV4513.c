@@ -9,10 +9,11 @@
 #include "globals.h"
 
 #include <util/delay.h>
+#include <avr/pgmspace.h>
 #include <string.h>
 
 static const char char_table_start = '-';
-static const char char_table[] = {
+static const char char_table[] PROGMEM = {
 	0x40, /* - */
 	0x80, /* . */
 	0x00, /* / */
@@ -158,8 +159,7 @@ void BV4513_writeString(const char * s, int pos)
 		else if(c >= char_table_start && c < char_table_start + sizeof(char_table))
 		{
 			/* Character is in the char table */
-			//c = pgm_read_byte(&char_table + c-char_table_start);
-			c = char_table[c-char_table_start];
+			c = pgm_read_byte(&char_table[c-char_table_start]);
 		}
 		else
 		{
