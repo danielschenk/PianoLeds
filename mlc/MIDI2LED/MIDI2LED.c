@@ -8,16 +8,6 @@
 * @date 2011-09-28
 */
 #include "globals.h"
-//#define F_CPU 20000000
-
-//#define led_indication
-
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <util/delay.h>
-#include <stdio.h>
-#include <stdbool.h>
-
 
 #include "ledstrip.h"
 #include "BV4513.h"
@@ -25,20 +15,15 @@
 #include "timer.h"
 #include "version.h"
 
-//#include "TWI_Master.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <util/delay.h>
+#include <stdio.h>
+#include <stdbool.h>
 
-
-// extern uint8_t ledsR[ledsConnected];
-// extern uint8_t ledsG[ledsConnected];
-// extern uint8_t ledsB[ledsConnected];
-// 
 extern unsigned int midiIndicatorSet;
 /* This is read from timer interrupt! */
 static volatile bool g_enable_indicators = false;
-
-unsigned char dummy = 0;
-
-void toggleHeartBeatLed();
 
 void toggleHeartBeatLed()
 {
