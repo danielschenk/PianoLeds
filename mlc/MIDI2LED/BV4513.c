@@ -62,7 +62,7 @@ static const char char_table[] = {
 	0, /* ^ */
 	0, /* _ */
 	0, /* ` */
-	0, /* a */
+	0x77, /* a */
 	0x7c, /* b */
 	0x58, /* c */
 	0x5e, /* d */
