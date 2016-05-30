@@ -11,6 +11,85 @@
 #include <util/delay.h>
 #include <string.h>
 
+static const char char_table_start = '0';
+static const char char_table[] = {
+	0x3f, /* 0 */
+	0x06, /* 1 */
+	0x5b, /* 2 */
+	0x4f, /* 3 */
+	0x66, /* 4 */
+	0x6d, /* 5 */
+	0x7d, /* 6 */
+	0x07, /* 7 */
+	0x7f, /* 8 */
+	0x6f, /* 9 */
+	0, /* : */
+	0, /* ; */
+	0, /* < */
+	0x48, /* = */
+	0, /* > */
+	0, /* ? */
+	0, /* @ */
+	0x77, /* A */
+	0x7c, /* B */
+	0x39, /* C */
+	0x5e, /* D */
+	0x79, /* E */
+	0x71, /* F */
+	0, /* G */
+	0x76, /* H */
+	0x30, /* I */
+	0x0e, /* J */
+	0, /* K */
+	0x38, /* L */
+	0, /* M */
+	0x54, /* N */
+	0x5c, /* O */
+	0x73, /* P */
+	0, /* Q */
+	0x50, /* R */
+	0, /* S */
+	0, /* T */
+	0x3e, /* U */
+	0x1c, /* V */
+	0, /* W */
+	0, /* X */
+	0, /* Y */
+	0, /* Z */
+	0, /* [ */
+	0, /* \ */
+	0, /* ] */
+	0, /* ^ */
+	0, /* _ */
+	0, /* ` */
+	0, /* a */
+	0x7c, /* b */
+	0x58, /* c */
+	0x5e, /* d */
+	0x79, /* e */
+	0x71, /* f */
+	0, /* g */
+	0x74, /* h */
+	0x30, /* i */
+	0x0e, /* j */
+	0, /* k */
+	0x38, /* l */
+	0, /* m */
+	0, /* n */
+	0x5c, /* o */
+	0x73, /* p */
+	0, /* q */
+	0x50, /* r */
+	0, /* s */
+	0, /* t */
+	0x3e, /* u */
+	0x1c, /* v */
+	0, /* w */
+	0, /* x */
+	0, /* y */
+	0, /* z */
+};
+
 void BV4513_init() 
 {
 	/*TWBR = 0x0C;
@@ -19,6 +98,12 @@ void BV4513_init()
 		(1<<TWIE)|(1<<TWINT)|                      // Enable Interupt.*/
 	TWI_Master_Initialise();
 	BV4513_clear();
+}
+
+void BV4513_writeSegments(unsigned char segments, unsigned char pos)
+{
+	unsigned char data[4] = {BV4513_addr, 3, pos, segments};
+	TWI_Start_Transceiver_With_Data(data, sizeof(data));
 }
 
 /** @brief Write a digit to the display
@@ -35,7 +120,7 @@ void BV4513_init()
 void BV4513_writeDigit(unsigned char val, unsigned char pos)
 {
 	unsigned char data[4] = {BV4513_addr, 4, pos, val};
-	TWI_Start_Transceiver_With_Data(data, 4);
+	TWI_Start_Transceiver_With_Data(data, sizeof(data));
 }
 
 void BV4513_writeNumber(int number)
@@ -67,14 +152,19 @@ void BV4513_writeString(const char * s, int pos)
 				BV4513_setDecimalPoint(curr_pos-1, 1);
 			continue;
 		}
-		else if(c >= '0' && c <= '9')
-			c -= '0'; /* ASCII digit to plain value */
-		else if(c == ' ')
-			c = 0xf; /* Clears digit on display */
+		else if(c >= char_table_start && c < char_table_start + sizeof(char_table))
+		{
+			/* Character is in the char table */
+			//c = pgm_read_byte(&char_table + c-char_table_start);
+			c = char_table[c-char_table_start];
+		}
 		else
-			c = 0xf; /* Clears digit on display */
+		{
+			/* Fallback for non-supported chars is empty */
+			c = 0;
+		}
 		
-		BV4513_writeDigit(c, curr_pos);
+		BV4513_writeSegments(c, curr_pos);
 		curr_pos++;
 	}
 }
