@@ -70,9 +70,9 @@ void BV4513_writeString(const char * s, int pos)
 		else if(c >= '0' && c <= '9')
 			c -= '0'; /* ASCII digit to plain value */
 		else if(c == ' ')
-			continue;
+			c = 0xf; /* Clears digit on display */
 		else
-			continue; /* not supported */
+			c = 0xf; /* Clears digit on display */
 		
 		BV4513_writeDigit(c, curr_pos);
 		curr_pos++;
