@@ -100,6 +100,14 @@ int main(void)
 			_delay_ms(500);
 		}
 		
+		for(char c = '0'; c <= 'z'; c++)
+		{
+			char s[] = {c, 0};
+			BV4513_writeString(s, 3);
+			while(TWI_Transceiver_Busy());
+			_delay_ms(500);
+		}
+		
 		//BV4513_writeDigit(1, 1);
 		//_delay_ms(500);
 		//BV4513_writeDigit(2, 1);
