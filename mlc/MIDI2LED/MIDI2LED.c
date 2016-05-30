@@ -78,16 +78,25 @@ int main(void)
 	sei();
 	while (1)
 	{
-		BV4513_writeDigit(1, 1);
-		_delay_ms(500);
-		BV4513_writeDigit(2, 1);
-		_delay_ms(500);
-		
-		for(int n=9; n<10000; n++)
+		for(char c = '0'; c <= '9'; c++)
 		{
-			BV4513_writeNumber(n);
-			_delay_ms(50);
+			char s[] = {c, 0};
+			BV4513_writeString(s, 0);
+			BV4513_writeDigit(c-48, 1);
+			while(TWI_Transceiver_Busy());
+			_delay_ms(500);
 		}
+		
+		//BV4513_writeDigit(1, 1);
+		//_delay_ms(500);
+		//BV4513_writeDigit(2, 1);
+		//_delay_ms(500);
+		//
+		//for(int n=9; n<10000; n++)
+		//{
+			//BV4513_writeNumber(n);
+			//_delay_ms(50);
+		//}
 	}
 	
 	#elif BUILD_MIDITODISPLAYTEST
