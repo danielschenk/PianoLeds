@@ -53,12 +53,12 @@ static void displayFirmwareVersion()
 	const char * fmt;
 	int pos;
 	if(VERSION_MINOR/10 >= 10) {
-		fmt = "%1u.%2u";
-		pos = 1;
+		fmt = "v%1u.%2u";
+		pos = 0;
 	}
 	else {
-		fmt = "%1u.%1u";
-		pos = 2;
+		fmt = "v%1u.%1u";
+		pos = 1;
 	}
 	
 	char s[8];
