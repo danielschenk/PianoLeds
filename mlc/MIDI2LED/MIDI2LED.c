@@ -51,19 +51,32 @@ static void displayFirmwareVersion()
 {
 	BV4513_clear();
 	const char * fmt;
-	int pos;
 	if(VERSION_MINOR/10 >= 10) {
 		fmt = "v%1u.%2u";
-		pos = 0;
 	}
 	else {
-		fmt = "v%1u.%1u";
-		pos = 1;
+		fmt = "v %1u.%1u";
 	}
 	
 	char s[8];
 	sprintf(s, fmt, VERSION_MAJOR, VERSION_MINOR);
-	BV4513_writeString(s, pos);
+	BV4513_writeString(s, 0);
+}
+
+static void displayBuildNumber()
+{
+	BV4513_clear();
+	const char * fmt = "%s%3u";
+	const char * prefix;
+	#ifdef Debug
+	prefix = "d";
+	#else
+	prefix ="b";
+	#endif
+	
+	char s[5];
+	sprintf(s, fmt, prefix, VERSION_COMMITS_PAST_TAG);
+	BV4513_writeString(s, 0);
 }
 
 int main(void)
@@ -143,7 +156,9 @@ int main(void)
 	
 	#if BUILD_DISPLAY
 	displayFirmwareVersion();
-	_delay_ms(2000);
+	_delay_ms(500);
+	displayBuildNumber();
+	_delay_ms(500);
 	BV4513_clear();
 	g_enable_indicators = true;
 	//BV4513_writeNumber(ledMode);
