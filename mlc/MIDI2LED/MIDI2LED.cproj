@@ -371,12 +371,6 @@ python generate_version.py
     <Compile Include="globals.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="i2c.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="i2c.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="ledstrip.c">
       <SubType>compile</SubType>
     </Compile>
@@ -402,9 +396,6 @@ python generate_version.py
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="TWI_Master.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="usart.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="version.c">
