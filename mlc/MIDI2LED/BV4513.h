@@ -13,7 +13,6 @@
 
 #define BV4513_addr 0x62 //!< I²C address of the display
 
-char nthdigit(int x, int n);
 void BV4513_writeNumber(int number);
 void BV4513_init();
 void BV4513_clear();
