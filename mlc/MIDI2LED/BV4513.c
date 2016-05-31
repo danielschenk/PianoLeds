@@ -64,7 +64,7 @@ static const char char_table[] PROGMEM = {
 	0x00, /* \ */
 	0x00, /* ] */
 	0x00, /* ^ */
-	0x00, /* _ */
+	0x08, /* _ */
 	0x00, /* ` */
 	0x5f, /* a */
 	0x7c, /* b */
