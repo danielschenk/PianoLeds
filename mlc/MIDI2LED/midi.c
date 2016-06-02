@@ -108,10 +108,10 @@ void midiHandleByte()
 				break;
 			}
 			
-			#ifdef displayOn
+			#if BUILD_DISPLAY
 			if (midiReceiveState != skip)
 			{
-				midiIndicator(1);
+				//midiIndicator(1);
 			}
 			#endif
 			

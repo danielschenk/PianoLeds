@@ -8,39 +8,70 @@
 * @date 2011-09-28
 */
 #include "globals.h"
-//#define F_CPU 20000000
-
-//#define led_indication
-
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <util/delay.h>
-
 
 #include "ledstrip.h"
 #include "BV4513.h"
 #include "midi.h"
 #include "timer.h"
+#include "version.h"
 
-//#include "TWI_Master.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/pgmspace.h>
+#include <util/delay.h>
+#include <stdio.h>
+#include <stdbool.h>
 
-
-// extern uint8_t ledsR[ledsConnected];
-// extern uint8_t ledsG[ledsConnected];
-// extern uint8_t ledsB[ledsConnected];
-// 
 extern unsigned int midiIndicatorSet;
-
-
-unsigned char dummy = 0;
-
-void toggleHeartBeatLed();
+/* This is read from timer interrupt! */
+static volatile bool g_enable_indicators = false;
 
 void toggleHeartBeatLed()
 {
 	static unsigned char heartBeadLed = 0;
 	heartBeadLed = !heartBeadLed;
 	BV4513_setDecimalPoint(3, heartBeadLed);
+}
+
+static void displayFirmwareVersion()
+{
+	BV4513_clear();
+	const char * fmt;
+	if(VERSION_MINOR/10 >= 10) {
+		fmt = "v%1u.%2u";
+	}
+	else {
+		fmt = "v %1u.%1u";
+	}
+	
+	char s[8];
+	sprintf(s, fmt, VERSION_MAJOR, VERSION_MINOR);
+	BV4513_writeString(s, 0);
+}
+
+static void displayBuildNumber()
+{
+	BV4513_clear();
+	const char * fmt = "%s%3u";
+	const char * prefix;
+	#ifdef Debug
+	prefix = "d";
+	#else
+	prefix ="b";
+	#endif
+	
+	char s[5];
+	sprintf(s, fmt, prefix, VERSION_COMMITS_PAST_TAG);
+	BV4513_writeString(s, 0);
+}
+
+static void displayLedMode(unsigned int value)
+{
+	BV4513_clear();
+	char s[5];
+	static const char fmt[] PROGMEM = "P%3u";
+	sprintf_P(s, fmt, value);
+	BV4513_writeString(s, 0);
 }
 
 int main(void)
@@ -50,18 +81,41 @@ int main(void)
 	MCUCR = (0<<JTD);
 	
 	//----------------------VARIOUS TESTING BUILDS-----------------------------------------------
-	#ifdef build_displaytest
+	#if BUILD_DISPLAYTEST
 	BV4513_init();
 	sei();
 	while (1)
 	{
-		BV4513_writeDigit(1, 1);
-		_delay_ms(50);
-		BV4513_writeDigit(2, 1);
-		_delay_ms(50);
+		for(char c = '0'; c <= '9'; c++)
+		{
+			char s[] = {c, 0};
+			BV4513_writeString(s, 0);
+			BV4513_writeDigit(c-48, 1);
+			while(TWI_Transceiver_Busy());
+			_delay_ms(500);
+		}
+		
+		for(char c = '0'; c <= 'z'; c++)
+		{
+			char s[] = {c, 0};
+			BV4513_writeString(s, 3);
+			while(TWI_Transceiver_Busy());
+			_delay_ms(500);
+		}
+		
+		//BV4513_writeDigit(1, 1);
+		//_delay_ms(500);
+		//BV4513_writeDigit(2, 1);
+		//_delay_ms(500);
+		//
+		//for(int n=9; n<10000; n++)
+		//{
+			//BV4513_writeNumber(n);
+			//_delay_ms(50);
+		//}
 	}
 	
-	#elif build_miditodisplaytest
+	#elif BUILD_MIDITODISPLAYTEST
 	BV4513_init();
 	midiInit();
 	sei();
@@ -70,7 +124,7 @@ int main(void)
 		
 	}
 	
-	#elif build_basictest
+	#elif BUILD_BASICTEST
 	DDRD = 0xFF;
 	while(1)
 	{
@@ -80,7 +134,7 @@ int main(void)
 		_delay_ms(1);
 	}
 	
-	#elif build_ledtest
+	#elif BUILD_LEDTEST
 	ledInit();
 	sei(); //Enable global interrupts
 	ledSetAutoWrite(1);
@@ -94,25 +148,38 @@ int main(void)
 	
 	#else
 	//---------------------DEFAULT OR DEBUG BUILD-------------------------------
-	//BV4513_init();
 	ledInit();
 	midiInit();
 	timerInit();
 	
-	#ifdef displayOn
+	#if BUILD_DISPLAY
 	BV4513_init();
 	#endif
-	
-	//BV4513_writeNumber(ledMode);
-	
 	sei(); //Enable global interrupts
+	
+	#if BUILD_DISPLAY
+	displayFirmwareVersion();
+	_delay_ms(500);
+	displayBuildNumber();
+	_delay_ms(500);
+	BV4513_clear();
+	displayLedMode(ledMode);
+	//g_enable_indicators = false;
+	#endif
 	
 	ledSetAutoWrite(0);
 	
 	//uint8_t ledTestSetpoint = 255;
 	
+	static unsigned int ledModePrevious = 0;
+	
 	while(1) //Keep waiting for interrupts
     {
+		if(ledMode != ledModePrevious)
+		{
+			displayLedMode(ledMode);
+			ledModePrevious = ledMode;
+		}
 		if(ledMode==0)
 		{
 			ledTestLoops();
@@ -141,7 +208,7 @@ ISR(USART0_RX_vect)
 	midiHandleByte();
 	//dummy = 0;
 	
-	#ifdef build_miditodisplaytest
+	#if BUILD_MIDITODISPLAYTEST
 	midiDisplayNote();
 	#endif
 	
@@ -173,8 +240,8 @@ ISR(TIMER1_COMPA_vect)
 	static uint8_t renderFreqDiv = 0;
 	static uint8_t heartBeatLedCount = 0;
 	static uint8_t midiIndicatorCount = 0;
-	#ifdef displayOn
-	if(midiIndicatorSet)
+	#if BUILD_DISPLAY
+	if(g_enable_indicators && midiIndicatorSet)
 	{
 		if(midiIndicatorCount>=100)
 		{
@@ -187,7 +254,7 @@ ISR(TIMER1_COMPA_vect)
 	
 	heartBeatLedCount++;
 	
-	if(heartBeatLedCount>=50)
+	if(g_enable_indicators && heartBeatLedCount>=50)
 	{
 		toggleHeartBeatLed();
 		heartBeatLedCount = 0;
