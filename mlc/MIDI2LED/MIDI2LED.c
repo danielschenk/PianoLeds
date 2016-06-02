@@ -18,6 +18,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <avr/wdt.h>
 #include <util/delay.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -79,6 +80,7 @@ int main(void)
 	//----------------------COMMON INITIALIZATIONS FOR ALL BUILDS--------------------------------
 	CLKPR = 0x00; //No CPU clock prescaling
 	MCUCR = (0<<JTD);
+	wdt_enable(WDTO_1S);
 	
 	//----------------------VARIOUS TESTING BUILDS-----------------------------------------------
 	#if BUILD_DISPLAYTEST
@@ -160,8 +162,10 @@ int main(void)
 	#if BUILD_DISPLAY
 	displayFirmwareVersion();
 	_delay_ms(500);
+	wdt_reset();
 	displayBuildNumber();
 	_delay_ms(500);
+	wdt_reset();
 	BV4513_clear();
 	displayLedMode(ledMode);
 	//g_enable_indicators = false;
@@ -175,6 +179,7 @@ int main(void)
 	
 	while(1) //Keep waiting for interrupts
     {
+		wdt_reset();
 		if(ledMode != ledModePrevious)
 		{
 			displayLedMode(ledMode);
