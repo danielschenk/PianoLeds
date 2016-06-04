@@ -78,14 +78,15 @@ static void displayLedMode(unsigned int value)
 int main(void)
 {
 	//----------------------COMMON INITIALIZATIONS FOR ALL BUILDS--------------------------------
+	wdt_enable(WDTO_1S);
+	sei();
+	
 	CLKPR = 0x00; //No CPU clock prescaling
 	MCUCR = (0<<JTD);
-	wdt_enable(WDTO_1S);
 	
 	//----------------------VARIOUS TESTING BUILDS-----------------------------------------------
 	#if BUILD_DISPLAYTEST
 	BV4513_init();
-	sei();
 	while (1)
 	{
 		for(char c = '0'; c <= '9'; c++)
@@ -120,7 +121,6 @@ int main(void)
 	#elif BUILD_MIDITODISPLAYTEST
 	BV4513_init();
 	midiInit();
-	sei();
 	while (1)
 	{
 		
@@ -138,7 +138,6 @@ int main(void)
 	
 	#elif BUILD_LEDTEST
 	ledInit();
-	sei(); //Enable global interrupts
 	ledSetAutoWrite(1);
 	
 	ledMode = 0;
@@ -156,10 +155,9 @@ int main(void)
 	
 	#if BUILD_DISPLAY
 	BV4513_init();
-	#endif
-	sei(); //Enable global interrupts
-	
-	#if BUILD_DISPLAY
+	wdt_reset();
+
+
 	displayFirmwareVersion();
 	_delay_ms(500);
 	wdt_reset();
