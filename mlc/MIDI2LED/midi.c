@@ -66,7 +66,6 @@ void midiUSART0Init()
 */
 void midiHandleByte()
 {
-	static unsigned char max;
 	static unsigned char currentParam; //!<Current note or controller number being handled
 	
 	//Save received byte from USART0
@@ -194,7 +193,7 @@ void midiHandleByte()
 				case 16: //Drawbar 4
 					if (ledMode == 100)
 					{
-						max = 2*midiReceiveBuffer;
+						//max = 2*midiReceiveBuffer;
 // 						for (int ledNr=0; ledNr<ledsConnected; ledNr++)
 // 						{
 // 							ledsR[ledNr]=ledsR[ledNr]*(max/255);

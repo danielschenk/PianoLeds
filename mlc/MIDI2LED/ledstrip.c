@@ -351,9 +351,9 @@ void ledEndPause(void)
 */
 void ledRenderAfterEffects(unsigned int mode)
 {
-	static uint8_t ledsRcount[ledsProgrammed] = { 1 };
-	static uint8_t ledsGcount[ledsProgrammed] = { 1 };
-	static uint8_t ledsBcount[ledsProgrammed] = { 1 };
+	//static uint8_t ledsRcount[ledsProgrammed] = { 1 };
+	//static uint8_t ledsGcount[ledsProgrammed] = { 1 };
+	//static uint8_t ledsBcount[ledsProgrammed] = { 1 };
 	#define tp1 100
 	#define tp2 75
 	#define tp3 50
@@ -379,8 +379,8 @@ void ledRenderAfterEffects(unsigned int mode)
 					ledsR[ledNr]--;
 					//ledsRcount[ledNr]++;
 				}				
-				else if(ledsR[ledNr]==0)
-					ledsRcount[ledNr] = 0;
+				//else if(ledsR[ledNr]==0)
+					//ledsRcount[ledNr] = 0;
 				if(ledsG[ledNr]>100)
 					ledsG[ledNr] = ledsG[ledNr] - ledsG[ledNr]/100;
 				else if(ledsG[ledNr]>0)
