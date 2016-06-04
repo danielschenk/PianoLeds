@@ -183,3 +183,9 @@ void BV4513_setDecimalPoint(unsigned char digit, unsigned char enable)
 	unsigned char data[4] = {BV4513_addr, 5, digit, enable};
 	TWI_Start_Transceiver_With_Data(data, 4);
 }
+
+void BV4513_reset()
+{
+	unsigned char data[] = {BV4513_addr, 0x95};
+	TWI_Start_Transceiver_With_Data(data, sizeof(data));
+}
