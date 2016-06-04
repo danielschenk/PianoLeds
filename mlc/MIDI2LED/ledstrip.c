@@ -14,6 +14,7 @@
 #include "midi.h"
 #include <avr/io.h>
 #include <util/delay.h>
+#include <stdbool.h>
 
 uint8_t ledsR[ledsProgrammed]; //!<Red intensity values
 uint8_t ledsG[ledsProgrammed]; //!<Green intensity values
@@ -367,6 +368,8 @@ void ledRenderAfterEffects(unsigned int mode)
 	{
 		mode = 8;
 	}
+	uint8_t note, r, g, b;
+	bool any_on;
 	switch(mode)
 	{
 		case 8:
@@ -430,6 +433,34 @@ void ledRenderAfterEffects(unsigned int mode)
 // 					ledsB[ledNr] = ledsB[ledNr] - dr2;
 			}
 			break;
+		case 52: /* Treasure intro */
+			any_on = false;
+			for(note = 0; note < 88; note++)
+			{
+				if(notes[note] > 0)
+				{
+					any_on = true;
+					break;
+				}
+			}
+			if(any_on)
+			{
+				r = midiExpression;
+			}
+			else
+			{
+				r = 0;
+			}
+			g = 0;
+			b = 0;
+			for(note = 0; note < 88; note++)
+			{
+				if(notes[note] == 0)
+				{
+					ledSingleColorSetLed(r, g, b, ledMapping[note]);
+				}
+			}
+			break;
 		default:
 			break;
 	}
@@ -443,8 +474,8 @@ void ledRenderAfterEffects(unsigned int mode)
 */
 void ledRenderFromNoteOn(unsigned char inputNote, unsigned int mode)
 {
-	//Turning LED on happens in the same way for the first 14 modes
-	if(mode >= 2 && mode <= 14)
+	//Turning LED on happens in the same way for some modes
+	if((mode >= 2 && mode <= 14) || mode == 52 /* Treasure intro */)
 	{
 		mode = 1;
 	}
@@ -633,6 +664,11 @@ void ledModeChange(unsigned int modeNr)
 			rMax = ledMaxInt;
 			gMax = 0;
 			bMax = ledMaxInt;
+		case 52: //Treasure intro!
+			rMax = 0;
+			gMax = 0;
+			bMax = ledMaxInt;
+			break;
 		default:
 			break;
 	}

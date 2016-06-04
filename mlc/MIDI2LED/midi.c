@@ -17,6 +17,7 @@
 unsigned char notes[88]; //!<Note velocity values
 unsigned char notesRelease[88]; //!<Note release velocity values
 unsigned char midiSustain; //!<Current value of sustain pedal
+unsigned char midiExpression = 0;
 
 extern uint8_t ledsR[ledsProgrammed]; //!<Red intensity values
 extern uint8_t ledsG[ledsProgrammed]; //!<Green intensity values
@@ -201,6 +202,9 @@ void midiHandleByte()
 // 							ledsB[ledNr]=ledsR[ledNr]*(max/255);
 // 						}
 					}
+				case 11: /* Expression */
+					midiExpression = midiReceiveBuffer;
+					break;
 			}
 			ledRenderFromSustain(ledMode, midiSustain);
 			midiReceiveState = skip;

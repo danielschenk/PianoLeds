@@ -34,6 +34,7 @@ enum midiReceiveStateEnum
 
 extern unsigned char notes[88];
 extern unsigned char midiSustain;
+extern unsigned char midiExpression;
 
 void midiHandleByte();
 void midiInit();
