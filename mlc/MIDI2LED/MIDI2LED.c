@@ -84,6 +84,20 @@ int main(void)
 	CLKPR = 0x00; //No CPU clock prescaling
 	MCUCR = (0<<JTD);
 	
+	/* Read reset cause flags. */
+	uint8_t mcusr = MCUSR;
+	/* Clear all flags, so next MCU reset won't have an ambiguous cause. */
+	MCUSR = 0;
+	
+	if(mcusr & (1<<PORF) || mcusr & (1<<BORF)) {
+		/* Power-on reset or brown-out reset. */
+		#if BUILD_DISPLAY
+		/* Wait a while so display can power-up properly. */
+		_delay_ms(200);
+		wdt_reset();
+		#endif
+	}
+	
 	//----------------------VARIOUS TESTING BUILDS-----------------------------------------------
 	#if BUILD_DISPLAYTEST
 	BV4513_init();
