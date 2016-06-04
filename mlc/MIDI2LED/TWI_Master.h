@@ -28,6 +28,7 @@
 #define TWI_TWBR            0x5C        // TWI Bit rate Register setting.
                                         // Se Application note for detailed 
                                         // information on setting this value.
+#define TWI_IGNORE_WRITE_NACK 1
 // Not used defines!
 //#define TWI_TWPS          0x00        // This driver presumes prescaler = 00
 

@@ -157,6 +157,10 @@ ISR(TWI_vect)					  //Replacement
       TWI_bufPtr = 0;                                     // Set buffer pointer to the TWI Address location
     case TWI_MTX_ADR_ACK:       // SLA+W has been tramsmitted and ACK received
     case TWI_MTX_DATA_ACK:      // Data byte has been tramsmitted and ACK received
+	#if TWI_IGNORE_WRITE_NACK
+	case TWI_MTX_ADR_NACK:      // SLA+W has been tramsmitted and NACK received
+	case TWI_MTX_DATA_NACK:     // Data byte has been tramsmitted and NACK received
+	#endif
       if (TWI_bufPtr < TWI_msgSize)
       {
         TWDR = TWI_buf[TWI_bufPtr++];
@@ -204,9 +208,11 @@ ISR(TWI_vect)					  //Replacement
              (0<<TWEA)|(1<<TWSTA)|(0<<TWSTO)|           // Initiate a (RE)START condition.
              (0<<TWWC);                                 //
       break;
+	#if !TWI_IGNORE_WRITE_NACK
     case TWI_MTX_ADR_NACK:      // SLA+W has been tramsmitted and NACK received
-    case TWI_MRX_ADR_NACK:      // SLA+R has been tramsmitted and NACK received    
     case TWI_MTX_DATA_NACK:     // Data byte has been tramsmitted and NACK received
+	#endif
+	case TWI_MRX_ADR_NACK:      // SLA+R has been tramsmitted and NACK received
 //    case TWI_NO_STATE              // No relevant state information available; TWINT = “0”
     case TWI_BUS_ERROR:         // Bus error due to an illegal START or STOP condition
     default:     
