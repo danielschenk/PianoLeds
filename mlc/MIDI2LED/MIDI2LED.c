@@ -37,32 +37,31 @@ void toggleHeartBeatLed()
 static void displayFirmwareVersion()
 {
 	BV4513_clear();
-	const char * fmt;
-	if(VERSION_MINOR/10 >= 10) {
-		fmt = "v%1u.%2u";
-	}
-	else {
-		fmt = "v %1u.%1u";
-	}
+	
+	#if (VERSION_MINOR/10 >= 10)
+	static const char fmt[] PROGMEM = "v%1u.%2u";
+	#else
+	static const char fmt[] PROGMEM = "v %1u.%1u";
+	#endif
 	
 	char s[8];
-	sprintf(s, fmt, VERSION_MAJOR, VERSION_MINOR);
+	sprintf_P(s, fmt, VERSION_MAJOR, VERSION_MINOR);
 	BV4513_writeString(s, 0);
 }
 
 static void displayBuildNumber()
 {
 	BV4513_clear();
-	const char * fmt = "%s%3u";
+	static const char fmt[] PROGMEM = "%s%3u";
 	const char * prefix;
 	#ifdef Debug
 	prefix = "d";
 	#else
-	prefix ="b";
+	prefix = "b";
 	#endif
 	
 	char s[5];
-	sprintf(s, fmt, prefix, VERSION_COMMITS_PAST_TAG);
+	sprintf_P(s, fmt, prefix, VERSION_COMMITS_PAST_TAG);
 	BV4513_writeString(s, 0);
 }
 
