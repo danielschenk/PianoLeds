@@ -15,5 +15,7 @@
 
 #define BUILD_DISPLAY 1
 
+#define TICKS_TO_MS(ticks) (ticks*10)
+#define MS_TO_TICKS(ms) (ms/10)
 
 #endif /* GLOBALS_H_ */

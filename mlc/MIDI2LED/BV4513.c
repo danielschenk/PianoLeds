@@ -102,6 +102,12 @@ void BV4513_init()
 		(1<<TWIE)|(1<<TWINT)|                      // Enable Interupt.*/
 	TWI_Master_Initialise();
 	BV4513_clear();
+	
+	/* Write back maximum brightness which is also the power-on default.
+	 * This prevents a different brightness value to stay in the display when
+	 * our software has reset. TODO: actually we should fully reset the display,
+	 * but this doesn't work yet! */
+	BV4513_setBrightness(25);
 }
 
 void BV4513_writeSegments(unsigned char segments, unsigned char pos)
@@ -187,5 +193,13 @@ void BV4513_setDecimalPoint(unsigned char digit, unsigned char enable)
 void BV4513_reset()
 {
 	unsigned char data[] = {BV4513_addr, 0x95};
+	TWI_Start_Transceiver_With_Data(data, sizeof(data));
+}
+
+void BV4513_setBrightness(unsigned char value)
+{
+	if(value > 25)
+		value = 25;
+	unsigned char data[] = {BV4513_addr, 1, value};
 	TWI_Start_Transceiver_With_Data(data, sizeof(data));
 }

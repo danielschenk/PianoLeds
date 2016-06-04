@@ -23,9 +23,16 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define BRIGHTNESS_IDLE 3
+#define BRIGHTNESS_WARN 25
+
+typedef uint32_t tick_t;
+
 extern unsigned int midiIndicatorSet;
 /* This is read from timer interrupt! */
 static volatile bool g_enable_indicators = false;
+
+static tick_t g_tick_count = 0;
 
 void toggleHeartBeatLed()
 {
@@ -72,6 +79,32 @@ static void displayLedMode(unsigned int value)
 	static const char fmt[] PROGMEM = "P%3u";
 	sprintf_P(s, fmt, value);
 	BV4513_writeString(s, 0);
+}
+
+static void tickHook(tick_t curr_tick)
+{
+	/* Note: interrupts are already re-enabled by the tick interrupt
+	 * before this hook gets called!*/
+	
+	static tick_t brightness_bump = 0;
+	static unsigned int ledModePrevious = 0;
+	
+	if(ledMode != ledModePrevious)
+	{
+		displayLedMode(ledMode);
+		/* Bump brightness */
+		BV4513_setBrightness(BRIGHTNESS_WARN);
+		brightness_bump = curr_tick;
+		if(brightness_bump == 0) /* 0 means no brightness reset needed so prevent this value */
+			brightness_bump++;
+		ledModePrevious = ledMode;
+	}
+	
+	if(brightness_bump > 0 && curr_tick - brightness_bump >= MS_TO_TICKS(1000))
+	{
+		BV4513_setBrightness(BRIGHTNESS_IDLE);
+		brightness_bump = 0;
+	}
 }
 
 int main(void)
@@ -164,7 +197,6 @@ int main(void)
 	//---------------------DEFAULT OR DEBUG BUILD-------------------------------
 	ledInit();
 	midiInit();
-	timerInit();
 	
 	#if BUILD_DISPLAY
 	BV4513_init();
@@ -186,16 +218,11 @@ int main(void)
 	
 	//uint8_t ledTestSetpoint = 255;
 	
-	static unsigned int ledModePrevious = 0;
-	
+	/* Enables the tick interrupt which triggers periodic events */
+	timerInit();
 	while(1) //Keep waiting for interrupts
     {
 		wdt_reset();
-		if(ledMode != ledModePrevious)
-		{
-			displayLedMode(ledMode);
-			ledModePrevious = ledMode;
-		}
 		if(ledMode==0)
 		{
 			ledTestLoops();
@@ -251,6 +278,7 @@ ISR(TIMER0_COMPA_vect)
 	ledEndPause();
 }
 
+/* Tick interrupt */
 ISR(TIMER1_COMPA_vect)
 {
 	static uint8_t renderFreqDiv = 0;
@@ -294,5 +322,9 @@ ISR(TIMER1_COMPA_vect)
 	{
 		ledWriteNextByte();
 	}
+	
+	g_tick_count++;
+	sei();
+	tickHook(g_tick_count);
 }
 
