@@ -86,7 +86,10 @@ static void tickHook(tick_t curr_tick)
 	/* Note: interrupts are already re-enabled by the tick interrupt
 	 * before this hook gets called!*/
 	
+	/* Time at which the display brightness was bumped. 0 means display
+	 * isn't currently bumped (is at idle brightness). */
 	static tick_t brightness_bump = 0;
+	/* Last led mode written to the display. */
 	static unsigned int ledModePrevious = 0;
 	
 	if(ledMode != ledModePrevious)

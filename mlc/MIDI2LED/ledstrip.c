@@ -434,6 +434,9 @@ void ledRenderAfterEffects(unsigned int mode)
 			}
 			break;
 		case 52: /* Treasure intro */
+			/* In this mode, every silent note gets a red background based on the 
+			 * expression pedal position. The background is only enabled when any note
+			 * is played, so first check if any note is played. */
 			any_on = false;
 			for(note = 0; note < 88; note++)
 			{
@@ -445,10 +448,12 @@ void ledRenderAfterEffects(unsigned int mode)
 			}
 			if(any_on)
 			{
+				/* Take expression as red intensity */
 				r = midiExpression;
 			}
 			else
 			{
+				/* No background */
 				r = 0;
 			}
 			g = 0;
@@ -457,6 +462,7 @@ void ledRenderAfterEffects(unsigned int mode)
 			{
 				if(notes[note] == 0)
 				{
+					/* This note is currently silent. Set it to the background color. */
 					ledSingleColorSetLed(r, g, b, ledMapping[note]);
 				}
 			}
