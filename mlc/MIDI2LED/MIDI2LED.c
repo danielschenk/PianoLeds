@@ -167,35 +167,6 @@ int main(void)
 		//}
 	}
 	
-	#elif BUILD_MIDITODISPLAYTEST
-	BV4513_init();
-	midiInit();
-	while (1)
-	{
-		
-	}
-	
-	#elif BUILD_BASICTEST
-	DDRD = 0xFF;
-	while(1)
-	{
-		PORTD = 0x00;
-		_delay_ms(1);
-		PORTD = 0xFF;
-		_delay_ms(1);
-	}
-	
-	#elif BUILD_LEDTEST
-	ledInit();
-	ledSetAutoWrite(1);
-	
-	ledMode = 0;
-	
-	while(1) //Keep waiting for interrupts
-    {
-		ledTestLoops();				
-    }
-	
 	#else
 	//---------------------DEFAULT OR DEBUG BUILD-------------------------------
 	ledInit();
@@ -232,14 +203,6 @@ int main(void)
 			//ledSingleColorSetLed(5,5,5,0);
 		}
 		asm("NOP"); //"No operation" to overcome strange behavior (program pointer stuck at previous statement)
-		
-		#ifdef led_indication
-		ledSingleColorSetLed(5,5,5,0);
-		_delay_ms(100);
-		ledSingleColorSetLed(0,0,0,0);
-		_delay_ms(100);
-		asm("NOP");
-		#endif
     }
 	
 	#endif
