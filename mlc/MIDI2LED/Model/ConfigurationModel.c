@@ -28,6 +28,7 @@ static ConfigurationModel_t gs_Model;
 void ConfigurationModel_Initialize()
 {
     gs_Model.currentPreset = 0;
+    CallbackList_Initialize(&gs_Model.currentPresetSubscribers);
 }
 
 uint8_t ConfigurationModel_GetCurrentPreset()
