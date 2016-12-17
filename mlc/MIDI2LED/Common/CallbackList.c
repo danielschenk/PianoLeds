@@ -65,16 +65,24 @@ void CallbackList_Remove(CallbackList_t *list, Callback_t callback)
         do {
             if(current->callback == callback)
             {
+                /* The current node has to be removed. */
                 if(list->first == current)
                 {
+                    /* We are removing the first node, so update the start pointer
+                     * in the list definition. */
                     list->first = current->next;
                 }
                 else if(NULL != previous)
                 {
+                    /* There is a predecessor, update it's next pointer. */
                     previous->next = current->next;
                 }
+                free(current);
             }
-            previous = current;
+            else
+            {
+                previous = current;
+            }
             current = current->next;
         } while(NULL != current);        
     }
