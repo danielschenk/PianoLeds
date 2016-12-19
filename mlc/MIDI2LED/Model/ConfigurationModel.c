@@ -8,9 +8,9 @@
  * @brief Data model containing current configuration.
  */
 
-#include "../Common/CallbackList.h"
-
 #include "ConfigurationModel.h"
+
+#define DEFAULT_CURRENTPRESET 7
 
 /** The configuration model definition. */
 typedef struct ConfigurationModel
@@ -27,7 +27,7 @@ static ConfigurationModel_t gs_Model;
 
 void ConfigurationModel_Initialize()
 {
-    gs_Model.currentPreset = 0;
+    gs_Model.currentPreset = DEFAULT_CURRENTPRESET;
     CallbackList_Initialize(&gs_Model.currentPresetSubscribers);
 }
 

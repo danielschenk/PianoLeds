@@ -14,6 +14,7 @@
 #include "midi.h"
 #include "timer.h"
 #include "version.h"
+#include "Model/ConfigurationModel.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -92,15 +93,16 @@ static void tickHook(tick_t curr_tick)
 	/* Last led mode written to the display. */
 	static unsigned int ledModePrevious = 0;
 	
-	if(ledMode != ledModePrevious)
+    uint8_t currentPreset = ConfigurationModel_GetCurrentPreset();
+	if(currentPreset != ledModePrevious)
 	{
-		displayLedMode(ledMode);
+		displayLedMode(currentPreset);
 		/* Bump brightness */
 		BV4513_setBrightness(BRIGHTNESS_WARN);
 		brightness_bump = curr_tick;
 		if(brightness_bump == 0) /* 0 means no brightness reset needed so prevent this value */
 			brightness_bump++;
-		ledModePrevious = ledMode;
+		ledModePrevious = currentPreset;
 	}
 	
 	if(brightness_bump > 0 && curr_tick - brightness_bump >= MS_TO_TICKS(1000))
@@ -169,6 +171,7 @@ int main(void)
 	
 	#else
 	//---------------------DEFAULT OR DEBUG BUILD-------------------------------
+    ConfigurationModel_Initialize();
 	ledInit();
 	midiInit();
 	
@@ -184,7 +187,7 @@ int main(void)
 	_delay_ms(500);
 	wdt_reset();
 	BV4513_clear();
-	displayLedMode(ledMode);
+	displayLedMode(ConfigurationModel_GetCurrentPreset());
 	//g_enable_indicators = false;
 	#endif
 	
@@ -197,7 +200,7 @@ int main(void)
 	while(1) //Keep waiting for interrupts
     {
 		wdt_reset();
-		if(ledMode==0)
+		if(ConfigurationModel_GetCurrentPreset() == 0)
 		{
 			ledTestLoops();
 			//ledSingleColorSetLed(5,5,5,0);
@@ -272,7 +275,7 @@ ISR(TIMER1_COMPA_vect)
 	#endif
 	if(renderFreqDiv == 3)
 	{
-		ledRenderAfterEffects(ledMode);
+		ledRenderAfterEffects(ConfigurationModel_GetCurrentPreset());
 	}
 	
 	if(renderFreqDiv >= 3)

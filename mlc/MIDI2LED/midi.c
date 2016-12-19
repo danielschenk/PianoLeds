@@ -8,6 +8,7 @@
 * @date 2011-09-28
 */
 
+#include "Model/ConfigurationModel.h"
 #include "globals.h"
 #include "midi.h"
 #include "ledstrip.h"
@@ -18,10 +19,6 @@ unsigned char notes[88]; //!<Note velocity values
 unsigned char notesRelease[88]; //!<Note release velocity values
 unsigned char midiSustain; //!<Current value of sustain pedal
 unsigned char midiExpression = 0;
-
-extern uint8_t ledsR[ledsProgrammed]; //!<Red intensity values
-extern uint8_t ledsG[ledsProgrammed]; //!<Green intensity values
-extern uint8_t ledsB[ledsProgrammed]; //!<Blue intensity values
 
 unsigned char midiIndicatorSet = 0;
 
@@ -142,7 +139,7 @@ void midiHandleByte()
 			if(!midiNoteNrMapped(currentParam))
 				break;
 			notes[currentParam] = midiReceiveBuffer;
-			ledRenderFromNoteOn(currentParam, ledMode);
+			ledRenderFromNoteOn(currentParam, ConfigurationModel_GetCurrentPreset());
 			midiReceiveState = skip; //Further data is useless
 			break;
 		case noteNrOff:
@@ -154,11 +151,11 @@ void midiHandleByte()
 				break;
 			notes[currentParam] = 0; //Note needs to be turned off
 			notesRelease[currentParam] = midiReceiveBuffer; //Save release velocity for later use
-			ledRenderFromNoteOff(currentParam, ledMode);
+			ledRenderFromNoteOff(currentParam, ConfigurationModel_GetCurrentPreset());
 			midiReceiveState = skip; //Further data is useless
 			break;
 		case progChange:
-			ledModeChange(midiReceiveBuffer);
+			ConfigurationModel_SetCurrentPreset(midiReceiveBuffer);
 			midiReceiveState = skip;
 			break;
 		case controlChange:
@@ -174,25 +171,25 @@ void midiHandleByte()
 				default:
 					break;
 				case 9: //Drawbar 1
-					if (ledMode == 100)
+					if (ConfigurationModel_GetCurrentPreset() == 100)
 					{
 						ledSingleColorSetFull((midiReceiveBuffer*2), -1, -1);
 					}
 					break;
 				case 14: //Drawbar 2
-					if (ledMode == 100)
+					if (ConfigurationModel_GetCurrentPreset() == 100)
 					{
 						ledSingleColorSetFull(-1, (midiReceiveBuffer*2), -1);
 					}
 					break;
 				case 15: //Drawbar 3
-					if (ledMode == 100)
+					if (ConfigurationModel_GetCurrentPreset() == 100)
 					{
 						ledSingleColorSetFull(-1, -1, (midiReceiveBuffer*2));
 					}
 					break;
 				case 16: //Drawbar 4
-					if (ledMode == 100)
+					if (ConfigurationModel_GetCurrentPreset() == 100)
 					{
 						//max = 2*midiReceiveBuffer;
 // 						for (int ledNr=0; ledNr<ledsConnected; ledNr++)
@@ -206,7 +203,7 @@ void midiHandleByte()
 					midiExpression = midiReceiveBuffer;
 					break;
 			}
-			ledRenderFromSustain(ledMode, midiSustain);
+			ledRenderFromSustain(ConfigurationModel_GetCurrentPreset(), midiSustain);
 			midiReceiveState = skip;
 			break;
 		case skip:
