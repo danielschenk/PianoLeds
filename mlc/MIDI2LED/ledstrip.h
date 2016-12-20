@@ -24,7 +24,6 @@
 #define ledBaud 2000000 //!< Ledstrip data rate
 #define setpoint_high 255 //!< For debugging purposes
 #define ledMaxInt 255 //!< Global maximum intensity
-#define ledInitMode 7 //!< LED effect mode on PUR
 
 #include <inttypes.h>
 //#include "midi.h"
@@ -38,7 +37,6 @@ enum ledWriteStateEnum
 	render
 };
 
-extern unsigned int ledMode;
 extern uint8_t ledAutoWrite;
 
 void ledInit();
@@ -55,7 +53,6 @@ void ledRenderAfterEffects(unsigned int mode);
 void ledRenderFromNoteOn(unsigned char inputNote, unsigned int mode);
 void ledSetAutoWrite(uint8_t input);
 void ledTestLoops();
-void ledModeChange(unsigned int modeNr);
 void ledRenderFromNoteOff(unsigned char inputNote, unsigned int mode);
 void ledSingleColorSetLed(uint8_t r, uint8_t g, uint8_t b, uint8_t ledNr);
 void ledSingleColorSetFull(int16_t r, int16_t g, int16_t b);

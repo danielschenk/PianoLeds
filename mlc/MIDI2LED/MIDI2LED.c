@@ -14,6 +14,8 @@
 #include "midi.h"
 #include "timer.h"
 #include "version.h"
+#include "Model/ConfigurationModel.h"
+#include "Common/TimerService.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -26,13 +28,16 @@
 #define BRIGHTNESS_IDLE 3
 #define BRIGHTNESS_WARN 25
 
-typedef uint32_t tick_t;
-
 extern unsigned int midiIndicatorSet;
 /* This is read from timer interrupt! */
 static volatile bool g_enable_indicators = false;
 
-static tick_t g_tick_count = 0;
+static Tick_t g_tick_count = 0;
+
+static Tick_t GetTickCount()
+{
+    return g_tick_count;
+}
 
 void toggleHeartBeatLed()
 {
@@ -81,33 +86,26 @@ static void displayLedMode(unsigned int value)
 	BV4513_writeString(s, 0);
 }
 
-static void tickHook(tick_t curr_tick)
+static void DisplayDimTimerCallback(TimerId_t unused)
 {
-	/* Note: interrupts are already re-enabled by the tick interrupt
-	 * before this hook gets called!*/
-	
-	/* Time at which the display brightness was bumped. 0 means display
-	 * isn't currently bumped (is at idle brightness). */
-	static tick_t brightness_bump = 0;
-	/* Last led mode written to the display. */
-	static unsigned int ledModePrevious = 0;
-	
-	if(ledMode != ledModePrevious)
-	{
-		displayLedMode(ledMode);
-		/* Bump brightness */
-		BV4513_setBrightness(BRIGHTNESS_WARN);
-		brightness_bump = curr_tick;
-		if(brightness_bump == 0) /* 0 means no brightness reset needed so prevent this value */
-			brightness_bump++;
-		ledModePrevious = ledMode;
-	}
-	
-	if(brightness_bump > 0 && curr_tick - brightness_bump >= MS_TO_TICKS(1000))
-	{
-		BV4513_setBrightness(BRIGHTNESS_IDLE);
-		brightness_bump = 0;
-	}
+    BV4513_setBrightness(BRIGHTNESS_IDLE);
+}
+
+static void DisplayPresetChangedCallback(void *arg)
+{
+    uint8_t newPreset = *(uint8_t *)arg;
+    
+#warning "TODO: Remove this dirty workaround"
+    /* The display driver needs interrupts. */
+    sei();
+    
+    displayLedMode(newPreset);
+    
+    /* Bump brightness */
+    BV4513_setBrightness(BRIGHTNESS_WARN);
+    
+#warning "TODO: check if there is already a running dim timer"
+    TimerService_Create(5000, DisplayDimTimerCallback, false);
 }
 
 int main(void)
@@ -169,6 +167,9 @@ int main(void)
 	
 	#else
 	//---------------------DEFAULT OR DEBUG BUILD-------------------------------
+    ConfigurationModel_Initialize();
+    TimerService_Initialize(GetTickCount);
+    
 	ledInit();
 	midiInit();
 	
@@ -184,7 +185,8 @@ int main(void)
 	_delay_ms(500);
 	wdt_reset();
 	BV4513_clear();
-	displayLedMode(ledMode);
+	displayLedMode(ConfigurationModel_GetCurrentPreset());
+    ConfigurationModel_SubscribeCurrentPreset(DisplayPresetChangedCallback);
 	//g_enable_indicators = false;
 	#endif
 	
@@ -194,14 +196,22 @@ int main(void)
 	
 	/* Enables the tick interrupt which triggers periodic events */
 	timerInit();
-	while(1) //Keep waiting for interrupts
+
+    /* Initial dim */
+    TimerService_Create(5000, DisplayDimTimerCallback, false);
+    
+    while(1) //Keep waiting for interrupts
     {
 		wdt_reset();
-		if(ledMode==0)
-		{
-			ledTestLoops();
-			//ledSingleColorSetLed(5,5,5,0);
-		}
+        
+        /* Service the timers */
+        TimerService_Run();
+        
+		//if(ConfigurationModel_GetCurrentPreset() == 0)
+		//{
+			//ledTestLoops();
+			////ledSingleColorSetLed(5,5,5,0);
+		//}
 		asm("NOP"); //"No operation" to overcome strange behavior (program pointer stuck at previous statement)
     }
 	
@@ -214,6 +224,7 @@ ISR(USART0_RX_vect)
 	ledSingleColorSetLed(255,255,255,1);
 	#endif
 	
+#warning "TODO: redesign this, only fill buffer from interrupt and do processing from main"
 	midiHandleByte();
 	//dummy = 0;
 	
@@ -272,7 +283,7 @@ ISR(TIMER1_COMPA_vect)
 	#endif
 	if(renderFreqDiv == 3)
 	{
-		ledRenderAfterEffects(ledMode);
+		ledRenderAfterEffects(ConfigurationModel_GetCurrentPreset());
 	}
 	
 	if(renderFreqDiv >= 3)
@@ -291,6 +302,5 @@ ISR(TIMER1_COMPA_vect)
 	
 	g_tick_count++;
 	sei();
-	tickHook(g_tick_count);
 }
 

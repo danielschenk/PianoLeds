@@ -8,6 +8,7 @@
 * @date 2011-09-28
 */
 
+#include "Model/ConfigurationModel.h"
 #include "globals.h"
 #include "ledstrip.h"
 #include "BV4513.h"
@@ -16,23 +17,32 @@
 #include <util/delay.h>
 #include <stdbool.h>
 
-uint8_t ledsR[ledsProgrammed]; //!<Red intensity values
-uint8_t ledsG[ledsProgrammed]; //!<Green intensity values
-uint8_t ledsB[ledsProgrammed]; //!<Blue intensity values
+/**
+ * Callback function for preset change events, triggered from model.
+ */
+static void CurrentPresetChangedCallback(void *arg);
 
-uint8_t ledMapping[88]; //!<Note number to LED number mapping. mapping[noteNr]==ledNr
-//uint8_t currentLedColor=0;
+/**
+* This method can be used to change the LED effect mode, and sets the corresponding intensity value for each mode.
+* @param modeNr The LED effect mode number.
+*/
+static void ledModeChange(unsigned int modeNr);
 
-enum ledWriteStateEnum ledWriteState = writeR;
+static uint8_t ledMapping[88]; //!<Note number to LED number mapping. mapping[noteNr]==ledNr
+
+static enum ledWriteStateEnum ledWriteState = writeR;
+
+static unsigned char rMax; //!< Red intensity maximum (varies according to effect mode)
+static unsigned char gMax; //!< Green intensity maximum (varies according to effect mode)
+static unsigned char bMax; //!< Blue intensity maximum (varies according to effect mode)
+
+static unsigned char ledTestSetpoint = setpoint_high;
+
+static uint8_t ledsR[ledsProgrammed]; //!<Red intensity values
+static uint8_t ledsG[ledsProgrammed]; //!<Green intensity values
+static uint8_t ledsB[ledsProgrammed]; //!<Blue intensity values
 
 uint8_t ledAutoWrite = 0; //!< Determines if a new strip write has to start automatically after a previous write has been completed
-unsigned int ledMode; //!< LED effect mode
-
-unsigned char rMax; //!< Red intensity maximum (varies according to effect mode)
-unsigned char gMax; //!< Greem intensity maximum (varies according to effect mode)
-unsigned char bMax; //!< Blue intensity maximum (varies according to effect mode)
-
-unsigned char ledTestSetpoint = setpoint_high;
 
 /**
 * This method writes the mapping of note numbers to LED numbers in memory.
@@ -182,7 +192,10 @@ void ledInit()
 	ledInitUSART1SPI(ledBaud);
 	ledSetAutoWrite(0);
 	ledWriteNextByte();
-	ledModeChange(ledInitMode);
+    
+    ConfigurationModel_SubscribeCurrentPreset(CurrentPresetChangedCallback);
+    /* Make sure configuration is done for initial preset */
+	ledModeChange(ConfigurationModel_GetCurrentPreset());
 }
 
 /**
@@ -318,7 +331,7 @@ void ledWriteNextByte()
 				break;
 			}
 		case render: //Not used
-			ledRenderAfterEffects(ledMode);
+			ledRenderAfterEffects(ConfigurationModel_GetCurrentPreset());
 			ledWriteState = pause;
 			break;
 		case pause:
@@ -609,17 +622,9 @@ void ledSetAutoWrite(uint8_t enable)
 		ledWriteNextByte();
 	}
 }
-/**
-* This method can be used to change the LED effect mode, and sets the corresponding intensity value for each mode.
-* @param modeNr The LED effect mode number.
-* @author Daniël Schenk
-* @date 2012-01-03
-*/
-void ledModeChange(unsigned int modeNr)
-{
-	ledMode = modeNr;
-	//BV4513_writeNumber(ledMode);
-	
+
+static void ledModeChange(unsigned int modeNr)
+{	
 	//Modes 8-14 have the same intensity settings as modes 1-7
 	if(modeNr >= 8 && modeNr <= 14)
 	{
@@ -706,4 +711,10 @@ void ledTestLoops()
 		_delay_ms(50);
 	}
 	ledTestSetpoint = (ledTestSetpoint>0)?  0 : setpoint_high;
+}
+
+static void CurrentPresetChangedCallback(void *arg)
+{
+    uint8_t newPresetNumber = *(uint8_t *)arg;
+    ledModeChange(newPresetNumber);
 }

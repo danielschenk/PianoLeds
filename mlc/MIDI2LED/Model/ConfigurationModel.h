@@ -14,6 +14,8 @@
 
 #include <stdint.h>
 
+#include "../Common/CallbackList.h"
+
 /**
  * Initialize the configuration model.
  */
