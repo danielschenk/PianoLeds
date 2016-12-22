@@ -38,8 +38,11 @@ uint8_t ConfigurationModel_GetCurrentPreset()
 
 void ConfigurationModel_SetCurrentPreset(uint8_t preset)
 {
-    gs_Model.currentPreset = preset;
-    CallbackList_ProcessAll(&gs_Model.currentPresetSubscribers, &preset);
+    if(preset != gs_Model.currentPreset)
+    {
+        gs_Model.currentPreset = preset;
+        CallbackList_ProcessAll(&gs_Model.currentPresetSubscribers, &preset);
+    }    
 }
 
 void ConfigurationModel_SubscribeCurrentPreset(Callback_t callback)
