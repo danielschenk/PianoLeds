@@ -47,6 +47,15 @@ void TimerService_Initialize(GetTickFunction_t getTickFunction);
 TimerId_t TimerService_Create(Tick_t expiresInMs, TimerCallback_t callback, bool periodic);
 
 /**
+ * Reschedule a timer.
+ * 
+ * @param timer         Timer ID of the timer to be rescheduled.
+ * @param expiresInMs   Time in ms after which the timer should expire.
+ * @param periodic      Whether the timer should be restarted with the same period after expiry.
+ */
+void TimerService_Reschedule(TimerId_t timer, Tick_t expiresInMs, bool periodic);
+
+/**
  * Delete (stop) an existing timer.
  * 
  * @param timer Timer ID of the timer to be deleted.

@@ -27,10 +27,14 @@
 
 #define BRIGHTNESS_IDLE 3
 #define BRIGHTNESS_WARN 25
+#define DISPLAY_DIM_TIMEOUT_MS 5000
 
 extern unsigned int midiIndicatorSet;
 /* This is read from timer interrupt! */
 static volatile bool g_enable_indicators = false;
+
+/** Timer ID of dim timer, @ref TIMERID_INVALID if not running. */
+static TimerId_t gs_dimTimer = TIMERID_INVALID;
 
 static Tick_t g_tick_count = 0;
 
@@ -89,10 +93,11 @@ static void displayLedMode(unsigned int value)
 static void DisplayDimTimerCallback(TimerId_t unused)
 {
     BV4513_setBrightness(BRIGHTNESS_IDLE);
+    gs_dimTimer = TIMERID_INVALID;
 }
 
 static void DisplayPresetChangedCallback(void *arg)
-{
+{   
     uint8_t newPreset = *(uint8_t *)arg;
     
 #warning "TODO: Remove this dirty workaround"
@@ -104,8 +109,14 @@ static void DisplayPresetChangedCallback(void *arg)
     /* Bump brightness */
     BV4513_setBrightness(BRIGHTNESS_WARN);
     
-#warning "TODO: check if there is already a running dim timer"
-    TimerService_Create(5000, DisplayDimTimerCallback, false);
+    if(TIMERID_INVALID == gs_dimTimer)
+    {
+        gs_dimTimer = TimerService_Create(DISPLAY_DIM_TIMEOUT_MS, DisplayDimTimerCallback, false);
+    }
+    else
+    {
+        TimerService_Reschedule(gs_dimTimer, DISPLAY_DIM_TIMEOUT_MS, false);
+    }
 }
 
 int main(void)

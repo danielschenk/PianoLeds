@@ -51,6 +51,16 @@ static TimerId_t FindFreeSlot()
     return slot;
 }
 
+static void Schedule(TimerId_t timer, Tick_t expiresInMs, bool periodic)
+{
+    assert(NULL != gs_GetTickFunction);
+    Tick_t now = gs_GetTickFunction();
+    Tick_t period = MS_TO_TICKS(expiresInMs);
+    
+    gs_Timers[timer].expiresAt = now + period;
+    gs_Timers[timer].period    = periodic ? period : 0;
+}
+
 void TimerService_Initialize(GetTickFunction_t getTickFunction)
 {
     gs_GetTickFunction = getTickFunction;
@@ -69,16 +79,19 @@ TimerId_t TimerService_Create(Tick_t expiresInMs, TimerCallback_t callback, bool
     
     if(TIMERID_INVALID != newTimer)
     {
-        assert(NULL != gs_GetTickFunction);
-        Tick_t now = gs_GetTickFunction();
-        Tick_t period = MS_TO_TICKS(expiresInMs);
-        
-        gs_Timers[newTimer].expiresAt = now + period;
-        gs_Timers[newTimer].period    = periodic ? period : 0;
+        Schedule(newTimer, expiresInMs, periodic);
         gs_Timers[newTimer].callback  = callback;
     }
     
     return newTimer;
+}
+
+void TimerService_Reschedule(TimerId_t timer, Tick_t expiresInMs, bool periodic)
+{
+    if(timer >= 0 && timer < NUM_SLOTS)
+    {
+        Schedule(timer, expiresInMs, periodic);
+    }
 }
 
 void TimerService_Delete(TimerId_t timer)
