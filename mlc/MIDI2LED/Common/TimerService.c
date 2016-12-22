@@ -90,7 +90,10 @@ void TimerService_Reschedule(TimerId_t timer, Tick_t expiresInMs, bool periodic)
 {
     if(timer >= 0 && timer < NUM_SLOTS)
     {
-        Schedule(timer, expiresInMs, periodic);
+        if(NULL != gs_Timers[timer].callback)
+        {
+            Schedule(timer, expiresInMs, periodic);
+        }
     }
 }
 
