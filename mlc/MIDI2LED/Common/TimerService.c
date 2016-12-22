@@ -57,9 +57,9 @@ void TimerService_Initialize(GetTickFunction_t getTickFunction)
     
     for(int i = 0; i < NUM_SLOTS; ++i)
     {
-        gs_Timers[i].callback  = NULL;
-        gs_Timers[i].expiresAt = 0;
-        gs_Timers[i].period    = 0;
+        /* Null callback denotes a free timer slot. Other values
+         * are initialized upon creating a timer. */
+        gs_Timers[i].callback = NULL;
     }
 }
 
@@ -119,3 +119,4 @@ void TimerService_Run()
         }
     }
 }
+

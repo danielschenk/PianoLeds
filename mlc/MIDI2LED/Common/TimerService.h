@@ -41,7 +41,8 @@ void TimerService_Initialize(GetTickFunction_t getTickFunction);
  * @param callback      Pointer to callback function which should be called upon expiry.
  * @param periodic      Whether the timer should be restarted with the same period after expiry.
  * 
- * @return Timer ID, @arg TIMERID_INVALID if creating the timer failed.
+ * @retval   TIMERID_INVALID    Creating the timer failed.
+ * @retval !=TIMERID_INVALID    Timer ID of the created timer.
  */
 TimerId_t TimerService_Create(Tick_t expiresInMs, TimerCallback_t callback, bool periodic);
 
