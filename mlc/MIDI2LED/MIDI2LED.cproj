@@ -374,6 +374,12 @@ python generate_version.py
     <Compile Include="Common\CallbackList.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="Common\Queue.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Common\Queue.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="Common\TimerService.c">
       <SubType>compile</SubType>
     </Compile>
