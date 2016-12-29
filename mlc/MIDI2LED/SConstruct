@@ -1,0 +1,47 @@
+#!python
+
+includes = ['.', 'Common', 'Model']
+sources = Glob('*.c') + Glob('Common/*.c') + Glob('Model/*.c')
+
+avr_flags = [
+    '-mmcu=atmega644p',
+    '-std=gnu99',
+    '-fdata-sections',
+    '-ffunction-sections',
+    '-fpack-struct',
+    '-fshort-enums',
+]
+avr_link_flags = [
+    '--gc-sections',
+    '-Map=MIDI2LED.map',
+]
+avr_flags_debug = [
+    '-Og',
+    '-g3',
+    '-DDEBUG'
+]
+avr_flags_release = [
+    '-Os',
+]
+
+env = Environment()
+env['TOOLS'] = ['avr-gcc', 'avr-g++']
+env['CC'] = 'avr-gcc'
+env['CXX'] = 'avr-g++'
+env['CPPATH'] = includes
+env['CFLAGS'] = avr_flags
+env['CXXFLAGS'] = avr_flags
+env['LINKGLAFS'] = avr_link_flags
+env['LIBS'] = ['m']
+
+env_debug = env.Clone()
+env_debug.Append(CFLAGS=avr_flags_debug, CXXFLAGS=avr_flags_debug)
+env_release = env.Clone()
+env_release.Append(CFLAGS=avr_flags_release, CXXFLAGS=avr_flags_release)
+
+Default('release')
+
+SConscript('MIDI2LED.scons', variant_dir='debug', exports={'env': env_debug})
+SConscript('MIDI2LED.scons', variant_dir='release', exports={'env': env_release})
+
+# env_test = Environment()

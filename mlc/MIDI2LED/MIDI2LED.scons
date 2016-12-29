@@ -1,0 +1,17 @@
+#!python
+
+import generate_version
+
+Import('env')
+
+
+def _generate_version(target, source, env):
+    ret = generate_version.main(['-o', str(target[0])])
+    if ret != 0:
+        raise Exception('version generate script returned {}'.format(ret))
+
+version = Command('version.h', None, _generate_version)
+env.AlwaysBuild(version)
+
+sources = Glob('*.c') + Glob('Common/*.c') + Glob('Model/*.c')
+env.Program('MIDI2LED', sources)
