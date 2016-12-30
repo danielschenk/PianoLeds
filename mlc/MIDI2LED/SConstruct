@@ -1,7 +1,6 @@
 #!python
 
 includes = ['.', 'Common', 'Model']
-sources = Glob('*.c') + Glob('Common/*.c') + Glob('Model/*.c')
 
 avr_flags = [
     '-mmcu=atmega644p',
