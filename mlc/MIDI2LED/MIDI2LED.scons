@@ -14,4 +14,13 @@ version = Command('version.h', None, _generate_version)
 env.AlwaysBuild(version)
 
 sources = Glob('*.c') + Glob('Common/*.c') + Glob('Model/*.c')
-env.Program('MIDI2LED', sources)
+program = env.Program('MIDI2LED', sources)
+
+# Generate hex file (example taken from Atmel Studio output)
+env.Command('MIDI2LED.hex', program,
+            'avr-objcopy -O ihex -R .eeprom -R .fuse -R .lock -R .signature -R .user_signatures $SOURCE $TARGET')
+
+# Generate disassembly for analysis/debugging purposes
+# (example taken from Atmel Studio)
+env.Command('MIDI2LED.lss', program,
+            'avr-objdump -h -S $SOURCE > $TARGET')

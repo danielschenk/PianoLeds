@@ -12,6 +12,7 @@ avr_flags = [
     '-fpack-struct',
     '-fshort-enums',
     '-fno-exceptions',
+    '-Wall',
 ]
 avr_link_flags = [
     MCU_FLAG,
