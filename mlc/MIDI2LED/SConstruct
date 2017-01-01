@@ -38,6 +38,10 @@ env['LINKFLAGS'] = avr_link_flags
 env['LIBS'] = ['m']
 env['PROGSUFFIX'] = '.elf'
 
+if ARGUMENTS.get('VERBOSE') != '1':
+    env['CCCOMSTR'] = 'Compiling $TARGET'
+    env['LINKCOMSTR'] = 'Linking $TARGET'
+
 env_debug = env.Clone()
 env_debug.Append(CFLAGS=avr_flags_debug, CXXFLAGS=avr_flags_debug)
 env_release = env.Clone()
