@@ -2,17 +2,21 @@
 
 includes = ['.', 'Common', 'Model']
 
+MCU_FLAG = '-mmcu=atmega644p'
+
 avr_flags = [
-    '-mmcu=atmega644p',
+    MCU_FLAG,
     '-std=gnu99',
     '-fdata-sections',
     '-ffunction-sections',
     '-fpack-struct',
     '-fshort-enums',
+    '-fno-exceptions',
 ]
 avr_link_flags = [
-    '--gc-sections',
-    '-Map=MIDI2LED.map',
+    MCU_FLAG,
+    '-Wl,--gc-sections',
+    '-Wl,-Map=$TARGET\.map',
 ]
 avr_flags_debug = [
     '-Og',
@@ -30,8 +34,9 @@ env['CXX'] = 'avr-g++'
 env['CPPATH'] = includes
 env['CFLAGS'] = avr_flags
 env['CXXFLAGS'] = avr_flags
-env['LINKGLAFS'] = avr_link_flags
+env['LINKFLAGS'] = avr_link_flags
 env['LIBS'] = ['m']
+env['PROGSUFFIX'] = '.elf'
 
 env_debug = env.Clone()
 env_debug.Append(CFLAGS=avr_flags_debug, CXXFLAGS=avr_flags_debug)
