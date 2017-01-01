@@ -209,7 +209,7 @@ int main(void)
 	timerInit();
 
     /* Initial dim */
-    TimerService_Create(5000, DisplayDimTimerCallback, false);
+    gs_dimTimer = TimerService_Create(5000, DisplayDimTimerCallback, false);
     
     while(1) //Keep waiting for interrupts
     {
