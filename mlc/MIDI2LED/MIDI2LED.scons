@@ -24,3 +24,6 @@ env.Command('MIDI2LED.hex', program,
 # (example taken from Atmel Studio)
 env.Command('MIDI2LED.lss', program,
             'avr-objdump -h -S $SOURCE > $TARGET')
+
+# Print size info
+env.Command(None, program, 'avr-size $SOURCE')
