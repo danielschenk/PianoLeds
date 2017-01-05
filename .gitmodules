@@ -1,0 +1,3 @@
+[submodule "mlc/MIDI2LED/ExternalComponents/googletest"]
+	path = mlc/MIDI2LED/ExternalComponents/googletest
+	url = https://github.com/google/googletest.git
