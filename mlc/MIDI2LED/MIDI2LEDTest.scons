@@ -1,0 +1,50 @@
+#!python
+
+import os
+
+base_env = Environment()
+if ARGUMENTS.get('VERBOSE') != '1':
+    base_env['CCCOMSTR'] = 'Compiling $TARGET'
+    base_env['LINKCOMSTR'] = 'Linking $TARGET'
+
+# First build Google Test itself
+gtest_env = base_env.Clone()
+
+gtest_path = os.path.join('ExternalComponents', 'googletest', 'googletest')
+gtest_include_path = os.path.join(gtest_path, 'include')
+
+gtest_env['CPPPATH'] = [
+    gtest_path,
+    gtest_include_path,
+]
+gtest_env['CXXFLAGS'] = [
+    '-pthread',
+]
+
+gtest_all = gtest_env.Object('gtest-all.o', os.path.join(gtest_path, 'src', 'gtest-all.cc'))
+libgtest = gtest_env.StaticLibrary('libgtest.a', [gtest_all])
+
+# Build and run tests
+component_paths_with_test = [
+    'Common',
+]
+
+test_env = base_env.Clone()
+test_env['CPPATH'] = [
+    gtest_include_path,
+]
+test_env['LIBPATH'] = [
+    '.',
+]
+test_env['LIBS'] = [
+    'gtest'
+]
+test_env['CFLAGS'] = [
+    '-std=gnu99',
+]
+
+for path in component_paths_with_test:
+    sources = Glob(os.path.join(path, '*.c')) + Glob(os.path.join(path, 'UnitTests', '*.cpp'))
+    test_program = test_env.Program(path + 'Test', sources)
+    # test_result = test_env.Command(None, test_program, './$SOURCE')
+    # env.AlwaysBuild(test_result)

@@ -53,4 +53,4 @@ Default('release')
 SConscript('MIDI2LED.scons', variant_dir='debug', exports={'env': env_debug})
 SConscript('MIDI2LED.scons', variant_dir='release', exports={'env': env_release})
 
-# env_test = Environment()
+SConscript('MIDI2LEDTest.scons', variant_dir='test')
