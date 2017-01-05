@@ -45,7 +45,8 @@ test_env['CFLAGS'] = [
 ]
 
 for path in component_paths_with_test:
+    test_name = path + 'Test'
     sources = Glob(os.path.join(path, '*.c')) + Glob(os.path.join(path, 'UnitTests', '*.cpp'))
-    test_program = test_env.Program(path + 'Test', sources)
-    # test_result = test_env.Command(None, test_program, './$SOURCE')
-    # env.AlwaysBuild(test_result)
+    test_program = test_env.Program(test_name, sources)
+    test_result = test_env.Command(test_name + '_result.xml', test_program, './$SOURCE --gtest_output=xml:$TARGET')
+    test_env.AlwaysBuild(test_result)
