@@ -43,6 +43,9 @@ test_env['LIBS'] = [
 test_env['CFLAGS'] = [
     '-std=gnu99',
 ]
+test_env['CXXFLAGS'] = [
+    '-std=c++11',
+]
 
 for path in component_paths_with_test:
     test_name = path + 'Test'
