@@ -25,13 +25,13 @@ struct Queue
     /** Pointer to data storage array. */
     void *pStorage;
     
-    /** Head index (index of first item). */
+    /** Pointer to first available item (next one to be popped). */
     void *pHead;
     
     /** Number of items currently in the queue. */
     unsigned int count;
     
-    /** Size of the data array. */
+    /** Number of elements in the data array. */
     size_t maxNumberOfItems;
     
     /** Size of a single item. */
@@ -51,8 +51,26 @@ typedef struct Queue Queue_t;
  */
 void Queue_Initialize(Queue_t *pQueue, void *pQueueStorage, size_t itemSize, unsigned int numberOfItems);
 
+/**
+ * Pop an item from the queue.
+ *
+ * @param pQueue    Pointer to queue structure.
+ * @param pTo       Pointer to memory where the item can be written to.
+ *
+ * @retval true     Pop succeeded.
+ * @retval false    Pop failed.
+ */
 bool Queue_Pop(Queue_t *pQueue, void *pTo);
 
+/**
+ * Push an item on to the queue.
+ *
+ * @param pQueue    Pointer to queue structure.
+ * @param pFrom     Pointer to item to be pushed.
+ *
+ * @retval true     Push succeeded.
+ * @retval false    Push failed.
+ */
 bool Queue_Push(Queue_t *pQueue, const void *pFrom);
 
 #ifdef __cplusplus
