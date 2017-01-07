@@ -11,45 +11,46 @@
 #include <gtest/gtest.h>
 #include "../Queue.h"
 
-typedef int TestData_t;
-#define TEST_DATA_SIZE sizeof(TestData_t)
 #define MAX_NUM_ITEMS  1024
 
+template <typename T>
 class QueueTest
     : public ::testing::Test
 {
 protected:
-//    typedef int TestData_t;
-//
     // Tried to use these instead of defines, but caused linker errors
-//    static constexpr size_t c_TestDataSize = sizeof(TestData_t);
 //    static constexpr unsigned int c_MaxNumItems = 1024;
 
     virtual void SetUp()
     {
-        Queue_Initialize(&m_queue, m_storage, TEST_DATA_SIZE, MAX_NUM_ITEMS);
+        Queue_Initialize(&m_queue, m_storage, sizeof(T), MAX_NUM_ITEMS);
     }
 
     Queue_t m_queue;
-    TestData_t m_storage[MAX_NUM_ITEMS];
+    T m_storage[MAX_NUM_ITEMS];
 };
 
-TEST_F(QueueTest, EmptyOnInit)
+// Required declarations for typed tests.
+typedef ::testing::Types<char, int, unsigned int> MyTypes;
+TYPED_TEST_CASE(QueueTest, MyTypes);
+
+
+TYPED_TEST(QueueTest, EmptyOnInit)
 {
-    ASSERT_EQ(m_queue.count, 0);
+    ASSERT_EQ(this->m_queue.count, 0);
 }
 
-TEST_F(QueueTest, StorageLocationInitialized)
+TYPED_TEST(QueueTest, StorageLocationInitialized)
 {
-    ASSERT_EQ(m_queue.pStorage, m_storage);
+    ASSERT_EQ(this->m_queue.pStorage, this->m_storage);
 }
 
-TEST_F(QueueTest, ItemSizeInitialized)
+TYPED_TEST(QueueTest, ItemSizeInitialized)
 {
-    ASSERT_EQ(m_queue.itemSize, TEST_DATA_SIZE);
+    ASSERT_EQ(this->m_queue.itemSize, sizeof(TypeParam));
 }
 
-TEST_F(QueueTest, NumItemsInitialized)
+TYPED_TEST(QueueTest, NumItemsInitialized)
 {
-    ASSERT_EQ(m_queue.maxNumberOfItems, MAX_NUM_ITEMS);
+    ASSERT_EQ(this->m_queue.maxNumberOfItems, MAX_NUM_ITEMS);
 }
