@@ -8,7 +8,9 @@
  * @brief Queue tests.
  */
 
+#include <array>
 #include <gtest/gtest.h>
+
 #include "../Queue.h"
 
 #define MAX_NUM_ITEMS  1024
@@ -67,8 +69,46 @@ TYPED_TEST(QueueTest, PushAndPopOne)
     const TypeParam push = 42;
 
     ASSERT_EQ(Queue_Push(&this->m_queue, &push), true);
+    ASSERT_EQ(this->m_queue.count, 1);
 
     TypeParam pop;
     ASSERT_EQ(Queue_Pop(&this->m_queue, &pop), true);
     ASSERT_EQ(push, pop);
+    ASSERT_EQ(this->m_queue.count, 0);
 }
+
+TYPED_TEST(QueueTest, PushAndPopMax)
+{
+    std::array<TypeParam, MAX_NUM_ITEMS> values;
+    TypeParam value = 0;
+
+    for(int i = 0; i < MAX_NUM_ITEMS; ++i)
+    {
+        values[i] = value;
+        ASSERT_EQ(Queue_Push(&this->m_queue, &value), true);
+        ++value;
+    }
+
+    ASSERT_EQ(this->m_queue.count, MAX_NUM_ITEMS);
+
+    for(int i = 0; i < MAX_NUM_ITEMS; ++i)
+    {
+        ASSERT_EQ(Queue_Pop(&this->m_queue, &value), true);
+        ASSERT_EQ(value, values[i]);
+    }
+
+    ASSERT_EQ(this->m_queue.count, 0);
+}
+
+TYPED_TEST(QueueTest, PushFailsWhenFull)
+{
+    const TypeParam push = 42;
+
+    for(int i = 0; i < MAX_NUM_ITEMS; ++i)
+    {
+        ASSERT_EQ(Queue_Push(&this->m_queue, &push), true);
+    }
+    ASSERT_EQ(Queue_Push(&this->m_queue, &push), false);
+}
+
+
