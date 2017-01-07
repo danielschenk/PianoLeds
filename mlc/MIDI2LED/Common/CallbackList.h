@@ -12,6 +12,10 @@
 #ifndef CALLBACKLIST_H_
 #define CALLBACKLIST_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Node type. */
 typedef struct Node Node_t;
 
@@ -59,5 +63,8 @@ void CallbackList_Remove(CallbackList_t *list, Callback_t callback);
  */
 void CallbackList_ProcessAll(CallbackList_t *list, void *arg);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* CALLBACKLIST_H_ */
