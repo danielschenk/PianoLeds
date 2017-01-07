@@ -54,3 +54,21 @@ TYPED_TEST(QueueTest, NumItemsInitialized)
 {
     ASSERT_EQ(this->m_queue.maxNumberOfItems, MAX_NUM_ITEMS);
 }
+
+TYPED_TEST(QueueTest, PopFailsWhenEmpty)
+{
+    TypeParam pop = 42;
+    ASSERT_EQ(Queue_Pop(&this->m_queue, &pop), false);
+    ASSERT_EQ(pop, 42);
+}
+
+TYPED_TEST(QueueTest, PushAndPopOne)
+{
+    const TypeParam push = 42;
+
+    ASSERT_EQ(Queue_Push(&this->m_queue, &push), true);
+
+    TypeParam pop;
+    ASSERT_EQ(Queue_Pop(&this->m_queue, &pop), true);
+    ASSERT_EQ(push, pop);
+}
