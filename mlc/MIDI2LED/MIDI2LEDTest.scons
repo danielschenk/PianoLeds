@@ -19,6 +19,7 @@ gtest_env['CPPPATH'] = [
 ]
 gtest_env['CXXFLAGS'] = [
     '-pthread',
+    '-Os',
 ]
 
 gtest_all = gtest_env.Object('gtest-all.o', os.path.join(gtest_path, 'src', 'gtest-all.cc'))
@@ -43,10 +44,12 @@ test_env['LIBS'] = [
 test_env['CFLAGS'] = [
     '-std=gnu99',
     '-g3',
+    '-Os',
 ]
 test_env['CXXFLAGS'] = [
     '-std=c++11',
     '-g3',
+    '-Os',
 ]
 
 for path in component_paths_with_test:
