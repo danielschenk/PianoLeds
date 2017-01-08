@@ -22,7 +22,9 @@ avr_link_flags = [
 avr_flags_debug = [
     '-Og',
     '-g3',
-    '-DDEBUG'
+]
+avr_symbols_debug = [
+    'DEBUG',
 ]
 avr_flags_release = [
     '-Os',
@@ -44,7 +46,8 @@ if ARGUMENTS.get('VERBOSE') != '1':
     env['LINKCOMSTR'] = 'Linking $TARGET'
 
 env_debug = env.Clone()
-env_debug.Append(CFLAGS=avr_flags_debug, CXXFLAGS=avr_flags_debug)
+env_debug.Append(CFLAGS=avr_flags_debug, CXXFLAGS=avr_flags_debug,
+                 CDEFINES = avr_symbols_debug, CPPDEFINES=avr_symbols_debug)
 env_release = env.Clone()
 env_release.Append(CFLAGS=avr_flags_release, CXXFLAGS=avr_flags_release)
 
