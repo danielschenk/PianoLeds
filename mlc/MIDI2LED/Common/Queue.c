@@ -14,12 +14,12 @@
 
 static bool IsFull(const Queue_t *pQueue);
 static bool IsEmpty(const Queue_t *pQueue);
-static const void *EndOfStorage(const Queue_t *pQueue);
+static const uint8_t *EndOfStorage(const Queue_t *pQueue);
 
 void Queue_Initialize(Queue_t *pQueue, void *pQueueStorage, size_t itemSize, unsigned int numberOfItems)
 {   
-    pQueue->pStorage         = pQueueStorage;
-    pQueue->pHead            = pQueueStorage;
+    pQueue->pStorage         = (uint8_t *)pQueueStorage;
+    pQueue->pHead            = (uint8_t *)pQueueStorage;
     pQueue->maxNumberOfItems = numberOfItems;
     pQueue->itemSize         = itemSize;
     pQueue->count            = 0;
@@ -52,7 +52,7 @@ bool Queue_Push(Queue_t *pQueue, const void *pFrom)
     
     if(!IsFull(pQueue))
     {
-        void *pNextFreeItem = pQueue->pHead + (pQueue->count * pQueue->itemSize);
+        uint8_t *pNextFreeItem = pQueue->pHead + (pQueue->count * pQueue->itemSize);
         /* Check for wrap-around. */
         if(pNextFreeItem >= EndOfStorage(pQueue))
         {
@@ -78,7 +78,7 @@ static bool IsEmpty(const Queue_t *pQueue)
     return 0 == pQueue->count;
 }
 
-static const void *EndOfStorage(const Queue_t *pQueue)
+static const uint8_t *EndOfStorage(const Queue_t *pQueue)
 {
     return pQueue->pStorage + (pQueue->itemSize * pQueue->maxNumberOfItems);
 }

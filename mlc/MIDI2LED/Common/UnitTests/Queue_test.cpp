@@ -44,7 +44,7 @@ TYPED_TEST(QueueTest, EmptyOnInit)
 
 TYPED_TEST(QueueTest, StorageLocationInitialized)
 {
-    ASSERT_EQ(this->m_queue.pStorage, this->m_storage);
+    ASSERT_EQ(this->m_queue.pStorage, (uint8_t *)this->m_storage);
 }
 
 TYPED_TEST(QueueTest, ItemSizeInitialized)

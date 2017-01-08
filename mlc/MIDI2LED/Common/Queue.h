@@ -23,10 +23,10 @@ extern "C" {
 struct Queue
 {
     /** Pointer to data storage array. */
-    void *pStorage;
+    uint8_t *pStorage;
     
     /** Pointer to first available item (next one to be popped). */
-    void *pHead;
+    uint8_t *pHead;
     
     /** Number of items currently in the queue. */
     unsigned int count;
