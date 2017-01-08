@@ -50,7 +50,7 @@ env_release.Append(CFLAGS=avr_flags_release, CXXFLAGS=avr_flags_release)
 
 Default('release')
 
-SConscript('MIDI2LED.scons', variant_dir='debug', exports={'env': env_debug})
-SConscript('MIDI2LED.scons', variant_dir='release', exports={'env': env_release})
+SConscript('MIDI2LED.scons', variant_dir='debug', exports={'env': env_debug}, duplicate=False)
+SConscript('MIDI2LED.scons', variant_dir='release', exports={'env': env_release}, duplicate=False)
 
-SConscript('MIDI2LEDTest.scons', variant_dir='test')
+SConscript('MIDI2LEDTest.scons', variant_dir='test', duplicate=False)
