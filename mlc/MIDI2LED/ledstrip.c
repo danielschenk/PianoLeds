@@ -199,22 +199,51 @@ void ledInit()
 }
 
 /**
+ * Calculate LED intensity from a velocity, taking factor into account
+ *
+ * @param velocity  The note velocity
+ * @param factor    The factor, 0 is 0%, 255 is 100%
+ * @return          The calculated LED intensity
+ */
+static uint8_t velocityToIntensity(uint8_t velocity, uint8_t factor)
+{
+    /* MIDI velocity has range 0-127. LEDs have range 0-255. Upscale velocity first */
+    uint8_t intensity = velocity * 2;
+    /* Apply factor */
+    intensity *= (factor / 255);
+
+    return intensity;
+}
+
+/**
 * This function writes intensity values for all LEDs into memory, according to current note velocities.
 * @param r Red intensity
 * @param g Green intensity
 * @param b Blue intensity
-* @author Daniël Schenk
-* @date 2011-09-28
 */
 void ledSingleColorUpdateFull(uint8_t r, uint8_t g, uint8_t b)
 {
 	for (int noteNr=0; noteNr<88; noteNr++)
 	{
-		ledsR[ledMapping[noteNr]]=notes[noteNr]*(r/255);
-		ledsG[ledMapping[noteNr]]=notes[noteNr]*(g/255);
-		ledsB[ledMapping[noteNr]]=notes[noteNr]*(b/255);
+        uint8_t ledNumber = ledMapping[noteNr];
+		ledsR[ledNumber] = velocityToIntensity(notes[noteNr], r);
+		ledsG[ledNumber] = velocityToIntensity(notes[noteNr], g);
+		ledsB[ledNumber] = velocityToIntensity(notes[noteNr], b);
 	}
+}
 
+/**
+ * Overwrite the actual intensity at the given address with the new intensity if the new intensity is higher
+ *
+ * @param actualIntensity   Pointer to the actual intensity
+ * @param newIntensity      The new intensity
+ */
+static void applyNewIntensityIfHigher(uint8_t* actualIntensity, uint8_t newIntensity)
+{
+    if(newIntensity > *actualIntensity)
+    {
+        *actualIntensity = newIntensity;
+    }
 }
 
 /**
@@ -223,17 +252,14 @@ void ledSingleColorUpdateFull(uint8_t r, uint8_t g, uint8_t b)
 * @param g Green intensity
 * @param b Blue intensity
 * @param noteNr Note number
-* @author Daniël Schenk
-* @date 2011-09-28
 */
 void ledSingleColorUpdateLedOn(uint8_t r, uint8_t g, uint8_t b, uint8_t noteNr)
 {
-// 	ledsR[ledMapping[noteNr]]=notes[noteNr]*(r/255);
-// 	ledsG[ledMapping[noteNr]]=notes[noteNr]*(g/255);
-// 	ledsB[ledMapping[noteNr]]=notes[noteNr]*(b/255);
-	ledsR[ledMapping[noteNr]] = (ledsR[ledMapping[noteNr]] < notes[noteNr]*(r/255)) ? notes[noteNr]*(r/255) : ledsR[ledMapping[noteNr]] ;
-	ledsG[ledMapping[noteNr]] = (ledsG[ledMapping[noteNr]] < notes[noteNr]*(g/255)) ? notes[noteNr]*(g/255) : ledsG[ledMapping[noteNr]] ;
-	ledsB[ledMapping[noteNr]] = (ledsB[ledMapping[noteNr]] < notes[noteNr]*(b/255)) ? notes[noteNr]*(b/255) : ledsB[ledMapping[noteNr]] ;
+    uint8_t velocity = notes[noteNr];
+    uint8_t ledNumber = ledMapping[noteNr];
+    applyNewIntensityIfHigher(&ledsR[ledNumber], velocityToIntensity(velocity, r));
+    applyNewIntensityIfHigher(&ledsG[ledNumber], velocityToIntensity(velocity, g));
+    applyNewIntensityIfHigher(&ledsB[ledNumber], velocityToIntensity(velocity, b));
 }
 
 void ledSingleColorUpdateLedOff(uint8_t noteNr)
