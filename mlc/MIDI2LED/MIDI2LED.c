@@ -86,7 +86,9 @@ static void displayLedMode(unsigned int value)
 	BV4513_clear();
 	char s[5];
 	static const char fmt[] PROGMEM = "P%3u";
-	sprintf_P(s, fmt, value);
+	/* LED mode is the raw MIDI program number (0-based). Most instruments display it as 1-based.
+	 * Increment with 1 to match that */
+	sprintf_P(s, fmt, value + 1);
 	BV4513_writeString(s, 0);
 }
 
