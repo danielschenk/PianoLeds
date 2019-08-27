@@ -1,5 +1,5 @@
-# MLC (MIDI LED Controller)
-**This project is not in development anymore. Check out my [new version](https://github.com/danielschenk/mlc2).**
+# PianoLeds
+**This project is not in development anymore. Check out my [new version](https://github.com/danielschenk/PianoLeds2).**
 
 Hardware design and firmware for my effect controller, which receives MIDI data from my Nord Stage keyboard and uses that to control an RGB LED strip mounted to it.
 
