@@ -44,8 +44,10 @@ def main(argv):
     # Glob pattern ensures that only tags which start with 'v[some digit]'
     # are used
     git_describe = subprocess.check_output(
-        ['git', 'describe', '--match', 'v[0-9]*', '--long']).rstrip()
-    print "Git desribed current state as:", git_describe
+        ['git', 'describe', '--match', 'v[0-9]*', '--long'],
+        text=True,
+    ).rstrip()
+    print(f"Git desribed current state as: {git_describe}")
 
     match = re.match(
         'v([0-9]+)\.([0-9]+)-([0-9]+)-(g[a-fA-F0-9]+)',
@@ -68,6 +70,7 @@ def main(argv):
     f.close()
 
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))
