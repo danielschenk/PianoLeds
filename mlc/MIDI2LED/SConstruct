@@ -13,6 +13,7 @@ avr_flags = [
     '-fshort-enums',
     '-fno-exceptions',
     '-Wall',
+    '-g3',
 ]
 avr_link_flags = [
     MCU_FLAG,
@@ -21,7 +22,6 @@ avr_link_flags = [
 ]
 avr_flags_debug = [
     '-Og',
-    '-g3',
 ]
 avr_symbols_debug = [
     'DEBUG',
