@@ -28,16 +28,16 @@
 #define BRIGHTNESS_IDLE 3
 #define BRIGHTNESS_WARN 25
 #define DISPLAY_DIM_TIMEOUT_MS 5000
+#define MIDI_INDICATOR_TIMEOUT_MS 1000
 #define LAST_PRESET_XOR_MASK ((uint8_t)0x5C)
-
-extern unsigned int midiIndicatorSet;
-/* This is read from timer interrupt! */
-static volatile bool g_enable_indicators = false;
 
 /** Timer ID of dim timer, @ref TIMERID_INVALID if not running. */
 static TimerId_t gs_dimTimer = TIMERID_INVALID;
+static TimerId_t gs_midiIndicatorTimer = TIMERID_INVALID;
 
 static Tick_t g_tick_count = 0;
+
+static volatile bool gs_midiReceived = false;
 
 /** Last preset, preserved across reboots (provided that power supply was stable enough to preserve SRAM),
  * an XOR'ed value is kept too to be able to do an extra check.
@@ -103,6 +103,12 @@ static void DisplayDimTimerCallback(TimerId_t unused)
 {
     BV4513_setBrightness(BRIGHTNESS_IDLE);
     gs_dimTimer = TIMERID_INVALID;
+}
+
+static void MidiIndicatorTimerCallback(TimerId_t unused)
+{
+	midiIndicator(false);
+	gs_midiIndicatorTimer = TIMERID_INVALID;
 }
 
 static void DisplayPresetChangedCallback(void *arg)
@@ -243,7 +249,6 @@ int main(void)
 		}
 	}
 	displayLedMode(ConfigurationModel_GetCurrentPreset());
-	//g_enable_indicators = false;
 	#endif
 
 	//uint8_t ledTestSetpoint = 255;
@@ -261,6 +266,20 @@ int main(void)
         /* Service the timers */
         TimerService_Run();
 
+		if (gs_midiReceived)
+		{
+			gs_midiReceived = false;
+			if (gs_midiIndicatorTimer == TIMERID_INVALID)
+			{
+				midiIndicator(true);
+				gs_midiIndicatorTimer = TimerService_Create(MIDI_INDICATOR_TIMEOUT_MS, MidiIndicatorTimerCallback, false);
+			}
+			else
+			{
+				TimerService_Reschedule(gs_midiIndicatorTimer, MIDI_INDICATOR_TIMEOUT_MS, false);
+			}
+		}
+
 		//if(ConfigurationModel_GetCurrentPreset() == 0)
 		//{
 			//ledTestLoops();
@@ -274,6 +293,7 @@ int main(void)
 
 ISR(USART0_RX_vect)
 {
+	gs_midiReceived = true;
 	#ifdef Debug
 	ledSingleColorSetLed(255,255,255,1);
 	#endif
@@ -314,22 +334,10 @@ ISR(TIMER1_COMPA_vect)
 {
 	static uint8_t renderFreqDiv = 0;
 	static uint8_t heartBeatLedCount = 0;
-	static uint8_t midiIndicatorCount = 0;
 	#if BUILD_DISPLAY
-	if(g_enable_indicators && midiIndicatorSet)
-	{
-		if(midiIndicatorCount>=100)
-		{
-			midiIndicatorCount = 0;
-			midiIndicator(0);
-		}
-		else
-			midiIndicatorCount++;
-	}
-
 	heartBeatLedCount++;
 
-	if(g_enable_indicators && heartBeatLedCount>=50)
+	if (heartBeatLedCount>=50)
 	{
 		toggleHeartBeatLed();
 		heartBeatLedCount = 0;

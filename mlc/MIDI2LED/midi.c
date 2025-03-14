@@ -1,7 +1,7 @@
 /**﻿
 * @file midi.c
 * @brief MIDI related definitions
-* 
+*
 *
 * @author Daniël Schenk
 *
@@ -19,8 +19,6 @@ unsigned char notes[88]; //!<Note velocity values
 unsigned char notesRelease[88]; //!<Note release velocity values
 unsigned char midiSustain; //!<Current value of sustain pedal
 unsigned char midiExpression = 0;
-
-unsigned char midiIndicatorSet = 0;
 
 static unsigned char midiChannel;
 volatile unsigned int midiErrorCount = 0;
@@ -65,18 +63,18 @@ void midiUSART0Init()
 void midiHandleByte()
 {
 	static unsigned char currentParam; //!<Current note or controller number being handled
-	
+
 	//Save received byte from USART0
 	unsigned char midiReceiveBuffer = UDR0; //!<To empty the USART receive register and save MIDI byte for use
-	
+
 	#ifdef midiLogEnabled
 	midiLogByte(midiReceiveBuffer); //Record received byte for debugging purposes
 	#endif
-	
+
 	//Extract the nibbles from received byte
 	volatile unsigned char midiLowerNibble = midiReceiveBuffer & 0x0F; //!<Lower nibble of received MIDI byte
 	volatile unsigned char midiUpperNibble = (midiReceiveBuffer & 0xF0)/16; //!<Upper nibble of received MIDI byte
-	
+
 	if((UCSR0A & (1<<FE0|1<<DOR0)) == 0) //If received without errors
 	{
 		//To get out of the 'skip' state when a new status byte arrives
@@ -91,11 +89,11 @@ void midiHandleByte()
 		UCSR0A = (UCSR0A & (~(1<<FE0|1<<DOR0))); //Clear any errors
 		midiErrorCount++;
 	}
-	
+
 	//unsigned char dummy = 0;
-	
-	
-	
+
+
+
 	switch(midiReceiveState)
 	{
 		case statusByte:
@@ -104,14 +102,14 @@ void midiHandleByte()
 				midiReceiveState = skip; //Do nothing
 				break;
 			}
-			
+
 			#if BUILD_DISPLAY
 			if (midiReceiveState != skip)
 			{
 				//midiIndicator(1);
 			}
 			#endif
-			
+
 			switch(midiUpperNibble) //Determine what type of message is being received
 			{
 				case 0x09: //NoteOn message
@@ -222,7 +220,7 @@ void midiHandleByte()
 void midiLogByte(unsigned char input)
 {
 	midiBytes[midiLogCount] = input;
-	
+
 	if(midiLogCount>midiLogSize-1)
 	{
 		midiLogCount = 0;
@@ -248,6 +246,5 @@ uint8_t midiNoteNrMapped(uint8_t note)
 
 void midiIndicator(unsigned char enable)
 {
-	midiIndicatorSet = enable;
 	BV4513_setDecimalPoint(2, enable);
 }
