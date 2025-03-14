@@ -124,7 +124,7 @@ static void DisplayPresetChangedCallback(void *arg)
 int main(void)
 {
 	//----------------------COMMON INITIALIZATIONS FOR ALL BUILDS--------------------------------
-	wdt_enable(WDTO_1S);
+	wdt_enable(WDTO_2S);
 	sei();
 
 	CLKPR = 0x00; //No CPU clock prescaling
@@ -135,7 +135,12 @@ int main(void)
 	/* Clear all flags, so next MCU reset won't have an ambiguous cause. */
 	MCUSR = 0;
 
-	if(mcusr & (1<<PORF) || mcusr & (1<<BORF)) {
+	bool powerOnReset = mcusr & (1<<PORF);
+	bool brownOutReset = mcusr & (1<<BORF);
+	bool watchdogReset = mcusr & (1<<WDRF);
+	bool externalReset = mcusr & (1<<EXTRF);
+
+	if(powerOnReset|| brownOutReset) {
 		/* Power-on reset or brown-out reset. */
 		#if BUILD_DISPLAY
 		/* Wait a while so display can power-up properly. */
@@ -190,6 +195,24 @@ int main(void)
 	BV4513_init();
 	wdt_reset();
 
+	if (brownOutReset && !powerOnReset)
+	{
+		BV4513_writeString("Ebor", 0);
+		_delay_ms(500);
+		wdt_reset();
+	}
+	if (watchdogReset)
+	{
+		BV4513_writeString("Ewdt", 0);
+		_delay_ms(500);
+		wdt_reset();
+	}
+	if (externalReset)
+	{
+		BV4513_writeString("E Er", 0);
+		_delay_ms(500);
+		wdt_reset();
+	}
 
 	displayFirmwareVersion();
 	_delay_ms(500);
