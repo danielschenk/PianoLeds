@@ -226,8 +226,11 @@ int main(void)
 	displayFirmwareVersion();
 	_delay_ms(500);
 	wdt_reset();
-	displayBuildNumber();
-	_delay_ms(500);
+	if (VERSION_COMMITS_PAST_TAG > 0)
+	{
+		displayBuildNumber();
+		_delay_ms(500);
+	}
 	wdt_reset();
 	BV4513_clear();
 
