@@ -28,6 +28,7 @@
 #define BRIGHTNESS_IDLE 3
 #define BRIGHTNESS_WARN 25
 #define DISPLAY_DIM_TIMEOUT_MS 5000
+#define LAST_PRESET_XOR_MASK ((uint8_t)0x5C)
 
 extern unsigned int midiIndicatorSet;
 /* This is read from timer interrupt! */
@@ -37,6 +38,12 @@ static volatile bool g_enable_indicators = false;
 static TimerId_t gs_dimTimer = TIMERID_INVALID;
 
 static Tick_t g_tick_count = 0;
+
+/** Last preset, preserved across reboots (provided that power supply was stable enough to preserve SRAM),
+ * an XOR'ed value is kept too to be able to do an extra check.
+ */
+static uint8_t g_lastPreset __attribute__((section(".noinit")));
+static uint8_t g_lastPresetCheck __attribute__((section(".noinit")));
 
 static Tick_t GetTickCount()
 {
@@ -101,6 +108,8 @@ static void DisplayDimTimerCallback(TimerId_t unused)
 static void DisplayPresetChangedCallback(void *arg)
 {
     uint8_t newPreset = *(uint8_t *)arg;
+	g_lastPreset = newPreset;
+	g_lastPresetCheck = newPreset ^ LAST_PRESET_XOR_MASK;
 
 #warning "TODO: Remove this dirty workaround"
     /* The display driver needs interrupts. */
@@ -221,8 +230,16 @@ int main(void)
 	_delay_ms(500);
 	wdt_reset();
 	BV4513_clear();
+
+	ConfigurationModel_SubscribeCurrentPreset(DisplayPresetChangedCallback);
+	if (!powerOnReset && !brownOutReset)
+	{
+		if (g_lastPreset ^ LAST_PRESET_XOR_MASK == g_lastPresetCheck)
+		{
+			ConfigurationModel_SetCurrentPreset(g_lastPreset);
+		}
+	}
 	displayLedMode(ConfigurationModel_GetCurrentPreset());
-    ConfigurationModel_SubscribeCurrentPreset(DisplayPresetChangedCallback);
 	//g_enable_indicators = false;
 	#endif
 
