@@ -1,7 +1,7 @@
 /**
 * @file MIDI2LED.c
 * @brief Main MIDI2LED code
-* 
+*
 *
 * @author Daniël Schenk
 *
@@ -53,13 +53,13 @@ void toggleHeartBeatLed()
 static void displayFirmwareVersion()
 {
 	BV4513_clear();
-	
+
 	#if (VERSION_MINOR/10 >= 10)
 	static const char fmt[] PROGMEM = "v%1u.%2u";
 	#else
 	static const char fmt[] PROGMEM = "v %1u.%1u";
 	#endif
-	
+
 	char s[8];
 	sprintf_P(s, fmt, VERSION_MAJOR, VERSION_MINOR);
 	BV4513_writeString(s, 0);
@@ -75,7 +75,7 @@ static void displayBuildNumber()
 	#else
 	prefix = "b";
 	#endif
-	
+
 	char s[5];
 	sprintf_P(s, fmt, prefix, VERSION_COMMITS_PAST_TAG);
 	BV4513_writeString(s, 0);
@@ -99,18 +99,18 @@ static void DisplayDimTimerCallback(TimerId_t unused)
 }
 
 static void DisplayPresetChangedCallback(void *arg)
-{   
+{
     uint8_t newPreset = *(uint8_t *)arg;
-    
+
 #warning "TODO: Remove this dirty workaround"
     /* The display driver needs interrupts. */
     sei();
-    
+
     displayLedMode(newPreset);
-    
+
     /* Bump brightness */
     BV4513_setBrightness(BRIGHTNESS_WARN);
-    
+
     if(TIMERID_INVALID == gs_dimTimer)
     {
         gs_dimTimer = TimerService_Create(DISPLAY_DIM_TIMEOUT_MS, DisplayDimTimerCallback, false);
@@ -126,15 +126,15 @@ int main(void)
 	//----------------------COMMON INITIALIZATIONS FOR ALL BUILDS--------------------------------
 	wdt_enable(WDTO_1S);
 	sei();
-	
+
 	CLKPR = 0x00; //No CPU clock prescaling
 	MCUCR = (0<<JTD);
-	
+
 	/* Read reset cause flags. */
 	uint8_t mcusr = MCUSR;
 	/* Clear all flags, so next MCU reset won't have an ambiguous cause. */
 	MCUSR = 0;
-	
+
 	if(mcusr & (1<<PORF) || mcusr & (1<<BORF)) {
 		/* Power-on reset or brown-out reset. */
 		#if BUILD_DISPLAY
@@ -143,7 +143,7 @@ int main(void)
 		wdt_reset();
 		#endif
 	}
-	
+
 	//----------------------VARIOUS TESTING BUILDS-----------------------------------------------
 	#if BUILD_DISPLAYTEST
 	BV4513_init();
@@ -157,7 +157,7 @@ int main(void)
 			while(TWI_Transceiver_Busy());
 			_delay_ms(500);
 		}
-		
+
 		for(char c = '0'; c <= 'z'; c++)
 		{
 			char s[] = {c, 0};
@@ -165,7 +165,7 @@ int main(void)
 			while(TWI_Transceiver_Busy());
 			_delay_ms(500);
 		}
-		
+
 		//BV4513_writeDigit(1, 1);
 		//_delay_ms(500);
 		//BV4513_writeDigit(2, 1);
@@ -177,15 +177,15 @@ int main(void)
 			//_delay_ms(50);
 		//}
 	}
-	
+
 	#else
 	//---------------------DEFAULT OR DEBUG BUILD-------------------------------
     ConfigurationModel_Initialize();
     TimerService_Initialize(GetTickCount);
-    
+
 	ledInit();
 	midiInit();
-	
+
 	#if BUILD_DISPLAY
 	BV4513_init();
 	wdt_reset();
@@ -202,24 +202,22 @@ int main(void)
     ConfigurationModel_SubscribeCurrentPreset(DisplayPresetChangedCallback);
 	//g_enable_indicators = false;
 	#endif
-	
-	ledSetAutoWrite(0);
-	
+
 	//uint8_t ledTestSetpoint = 255;
-	
+
 	/* Enables the tick interrupt which triggers periodic events */
 	timerInit();
 
     /* Initial dim */
     gs_dimTimer = TimerService_Create(5000, DisplayDimTimerCallback, false);
-    
+
     while(1) //Keep waiting for interrupts
     {
 		wdt_reset();
-        
+
         /* Service the timers */
         TimerService_Run();
-        
+
 		//if(ConfigurationModel_GetCurrentPreset() == 0)
 		//{
 			//ledTestLoops();
@@ -227,7 +225,7 @@ int main(void)
 		//}
 		asm("NOP"); //"No operation" to overcome strange behavior (program pointer stuck at previous statement)
     }
-	
+
 	#endif
 }
 
@@ -236,15 +234,15 @@ ISR(USART0_RX_vect)
 	#ifdef Debug
 	ledSingleColorSetLed(255,255,255,1);
 	#endif
-	
+
 #warning "TODO: redesign this, only fill buffer from interrupt and do processing from main"
 	midiHandleByte();
 	//dummy = 0;
-	
+
 	#if BUILD_MIDITODISPLAYTEST
 	midiDisplayNote();
 	#endif
-	
+
 	#ifdef Debug
 	ledSingleColorSetLed(0,0,0,1);
 	#endif
@@ -255,9 +253,9 @@ ISR(USART1_TX_vect)
 // 	#ifdef Debug
 // 	ledSingleColorSetLed(0,15,0,2);
 // 	#endif
-	
+
 	ledWriteNextByte();
-	
+
 // 	#ifdef Debug
 // 	ledSingleColorSetLed(0,0,0,2);
 // 	#endif
@@ -285,9 +283,9 @@ ISR(TIMER1_COMPA_vect)
 		else
 			midiIndicatorCount++;
 	}
-	
+
 	heartBeatLedCount++;
-	
+
 	if(g_enable_indicators && heartBeatLedCount>=50)
 	{
 		toggleHeartBeatLed();
@@ -298,7 +296,7 @@ ISR(TIMER1_COMPA_vect)
 	{
 		ledRenderAfterEffects(ConfigurationModel_GetCurrentPreset());
 	}
-	
+
 	if(renderFreqDiv >= 3)
 	{
 		renderFreqDiv = 0;
@@ -307,13 +305,9 @@ ISR(TIMER1_COMPA_vect)
 	{
 		renderFreqDiv++;
 	}
-	
-	if (ledAutoWrite==0)
-	{
-		ledWriteNextByte();
-	}
-	
+
+	ledWriteNextByte();
+
 	g_tick_count++;
 	sei();
 }
-

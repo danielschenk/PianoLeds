@@ -1,7 +1,7 @@
 ﻿/**
 * @file timer.c
 * @brief Timer related functions
-* 
+*
 *
 * @author Daniël Schenk
 *

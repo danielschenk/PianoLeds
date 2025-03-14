@@ -1,5 +1,6 @@
 # PianoLeds
-**This project is not in development anymore. Check out my [new version](https://github.com/danielschenk/PianoLeds2).**
+**This project is not in development anymore, except for occasional minor improvements I want
+to add for certain gigs I play. Check out my [new version](https://github.com/danielschenk/PianoLeds2).**
 
 Hardware design and firmware for my effect controller, which receives MIDI data from my Nord Stage keyboard and uses that to control an RGB LED strip mounted to it.
 
