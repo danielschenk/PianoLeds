@@ -12,7 +12,6 @@
 #define LEDSTRIP_H_
 
 #define ledsProgrammed 88
-#define ledsConnected 82 //!< Used in development phase for testing with less LED strip elements
 #define ledBaud 2000000 //!< Ledstrip data rate
 #define setpoint_high 255 //!< For debugging purposes
 #define ledMaxInt 255 //!< Global maximum intensity
@@ -31,8 +30,6 @@ enum ledWriteStateEnum
 void ledInit();
 void ledSingleColorUpdateFull(uint8_t r, uint8_t g, uint8_t b);
 void ledSingleColorUpdateLedOn(uint8_t r, uint8_t g, uint8_t b, uint8_t noteNr);
-void ledCreateMapping();
-void ledInitUSART1SPI(long baud);
 void ledWriteNextByte();
 void ledEndPause(void);
 void ledRenderAfterEffects(unsigned int mode);

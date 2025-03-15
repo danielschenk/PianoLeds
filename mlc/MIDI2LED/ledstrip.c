@@ -66,8 +66,6 @@ static unsigned char rMax; //!< Red intensity maximum (varies according to effec
 static unsigned char gMax; //!< Green intensity maximum (varies according to effect mode)
 static unsigned char bMax; //!< Blue intensity maximum (varies according to effect mode)
 
-static unsigned char ledTestSetpoint = setpoint_high;
-
 static uint8_t ledsR[ledsProgrammed]; //!<Red intensity values
 static uint8_t ledsG[ledsProgrammed]; //!<Green intensity values
 static uint8_t ledsB[ledsProgrammed]; //!<Blue intensity values
@@ -77,7 +75,7 @@ static uint8_t ledsB[ledsProgrammed]; //!<Blue intensity values
 * @author Daniël Schenk
 * @date 2011-09-29
 */
-void ledCreateMapping()
+static void ledCreateMapping()
 {
 	int bottom = 0;
 	int top = 87;
@@ -99,7 +97,7 @@ void ledCreateMapping()
 * @param baud Desired baud rate
 * @date 2011-09-29
 */
-void ledInitUSART1SPI(long baud)
+static void ledInitUSART1SPI(long baud)
 {
 	UBRR1 = 0;
 	/* Setting the XCKn port pin as output, enables master mode. */
@@ -214,7 +212,7 @@ void ledSingleColorUpdateLedOff(uint8_t noteNr)
 */
 void ledSingleColorSetFull(int16_t r, int16_t g, int16_t b)
 {
-	for (int ledNr=0; ledNr<ledsConnected; ledNr++)
+	for (int ledNr=0; ledNr<ledsProgrammed; ledNr++)
 	{
 		if (r >= 0)
 		{
@@ -335,12 +333,7 @@ void ledRenderAfterEffects(unsigned int mode)
 	{
 		case 0:
 			// LED TEST
-			for (int ledNr = 0; ledNr<ledsProgrammed; ledNr++)
-			{
-				ledsR[ledNr] = ledTestColor->r;
-				ledsG[ledNr] = ledTestColor->g;
-				ledsB[ledNr] = ledTestColor->b;
-			}
+			ledSingleColorSetFull(ledTestColor->r, ledTestColor->g, ledTestColor->b);
 			break;
 		case 8:
 			for (int ledNr = 0; ledNr<ledsProgrammed; ledNr++)
