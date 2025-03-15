@@ -25,6 +25,16 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+FUSES =
+{
+	// Full-swing crystal oscillator, BOD enabled
+	.low = (FUSE_CKSEL3 & FUSE_SUT1),
+	// 4k boot flash section (default), save EEPROM while flashing, enable SPI/JTAG/debug
+	.high = (FUSE_BOOTSZ0 & FUSE_BOOTSZ1 & FUSE_EESAVE & FUSE_SPIEN & FUSE_JTAGEN & FUSE_OCDEN),
+	// Brown-out level 4.3V
+	.extended = (FUSE_BODLEVEL0 & FUSE_BODLEVEL1),
+};
+
 #define BRIGHTNESS_IDLE 3
 #define BRIGHTNESS_WARN 25
 #define DISPLAY_DIM_TIMEOUT_MS 5000
