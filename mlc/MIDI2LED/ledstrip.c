@@ -9,6 +9,7 @@
 */
 
 #include "Model/ConfigurationModel.h"
+#include "Common/TimerService.h"
 #include "globals.h"
 #include "ledstrip.h"
 #include "BV4513.h"
@@ -16,11 +17,40 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#define MAX_INTENSITY UINT8_MAX
 
 /**
  * Callback function for preset change events, triggered from model.
  */
 static void CurrentPresetChangedCallback(void *arg);
+
+typedef struct
+{
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+} Color;
+
+static const Color ledTestColors[] = {
+	{MAX_INTENSITY, 0, 0},
+	{0, MAX_INTENSITY, 0},
+	{0, 0, MAX_INTENSITY},
+	{MAX_INTENSITY, MAX_INTENSITY, 0},
+	{MAX_INTENSITY, 0, MAX_INTENSITY},
+	{0, MAX_INTENSITY, MAX_INTENSITY},
+	{MAX_INTENSITY, MAX_INTENSITY, MAX_INTENSITY},
+};
+
+static const Color* ledTestColor = ledTestColors;
+
+static void LedTestTimerCallback(TimerId_t unused)
+{
+	const Color* end = &ledTestColors[sizeof(ledTestColors)/sizeof(Color)];
+	if (++ledTestColor >= end)
+		ledTestColor = ledTestColors;
+}
 
 /**
 * This method can be used to change the LED effect mode, and sets the corresponding intensity value for each mode.
@@ -100,6 +130,8 @@ void ledInit()
     ConfigurationModel_SubscribeCurrentPreset(CurrentPresetChangedCallback);
     /* Make sure configuration is done for initial preset */
 	ledModeChange(ConfigurationModel_GetCurrentPreset());
+
+	TimerService_Create(2000, LedTestTimerCallback, true);
 }
 
 /**
@@ -301,6 +333,15 @@ void ledRenderAfterEffects(unsigned int mode)
 	bool any_on;
 	switch(mode)
 	{
+		case 0:
+			// LED TEST
+			for (int ledNr = 0; ledNr<ledsProgrammed; ledNr++)
+			{
+				ledsR[ledNr] = ledTestColor->r;
+				ledsG[ledNr] = ledTestColor->g;
+				ledsB[ledNr] = ledTestColor->b;
+			}
+			break;
 		case 8:
 			for(int ledNr = 0; ledNr<ledsConnected; ledNr++)
 			{
@@ -538,29 +579,6 @@ static void ledModeChange(unsigned int modeNr)
 		default:
 			break;
 	}
-}
-
-void ledTestLoops()
-{
-	for(int i=0; i<ledsConnected; i++)
-	{
-		ledsR[i]=ledTestSetpoint;
-		//ledWriteNextByte();
-		_delay_ms(50);
-	}
-	for(int i=0; i<ledsConnected; i++)
-	{
-		ledsG[i]=ledTestSetpoint;
-		//ledWriteNextByte();
-		_delay_ms(50);
-	}
-	for(int i=0; i<ledsConnected; i++)
-	{
-		ledsB[i]=ledTestSetpoint;
-		//ledWriteNextByte();
-		_delay_ms(50);
-	}
-	ledTestSetpoint = (ledTestSetpoint>0)?  0 : setpoint_high;
 }
 
 static void CurrentPresetChangedCallback(void *arg)

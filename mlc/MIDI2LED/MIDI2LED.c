@@ -271,11 +271,6 @@ int main(void)
 			}
 		}
 
-		//if(ConfigurationModel_GetCurrentPreset() == 0)
-		//{
-			//ledTestLoops();
-			////ledSingleColorSetLed(5,5,5,0);
-		//}
 		asm("NOP"); //"No operation" to overcome strange behavior (program pointer stuck at previous statement)
     }
 

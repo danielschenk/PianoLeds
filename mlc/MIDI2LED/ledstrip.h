@@ -37,7 +37,6 @@ void ledWriteNextByte();
 void ledEndPause(void);
 void ledRenderAfterEffects(unsigned int mode);
 void ledRenderFromNoteOn(unsigned char inputNote, unsigned int mode);
-void ledTestLoops();
 void ledRenderFromNoteOff(unsigned char inputNote, unsigned int mode);
 void ledSingleColorSetLed(uint8_t r, uint8_t g, uint8_t b, uint8_t ledNr);
 void ledSingleColorSetFull(int16_t r, int16_t g, int16_t b);
