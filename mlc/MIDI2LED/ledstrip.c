@@ -70,6 +70,8 @@ static uint8_t ledsR[ledsProgrammed]; //!<Red intensity values
 static uint8_t ledsG[ledsProgrammed]; //!<Green intensity values
 static uint8_t ledsB[ledsProgrammed]; //!<Blue intensity values
 
+static Color backgroundColor = {0, 0, 0};
+
 /**
 * This method writes the mapping of note numbers to LED numbers in memory.
 * @author Daniël Schenk
@@ -196,12 +198,21 @@ void ledSingleColorUpdateLedOn(uint8_t r, uint8_t g, uint8_t b, uint8_t noteNr)
     applyNewIntensityIfHigher(&ledsB[ledNumber], velocityToIntensity(velocity, b));
 }
 
+static void ledSingleColorUpdateLedOnMax(uint8_t noteNr)
+{
+    uint8_t ledNumber = ledMapping[noteNr];
+    applyNewIntensityIfHigher(&ledsR[ledNumber], rMax);
+    applyNewIntensityIfHigher(&ledsG[ledNumber], gMax);
+    applyNewIntensityIfHigher(&ledsB[ledNumber], bMax);
+}
+
 void ledSingleColorUpdateLedOff(uint8_t noteNr)
 {
-	ledsR[ledMapping[noteNr]] = 0;
-	ledsG[ledMapping[noteNr]] = 0;
-	ledsB[ledMapping[noteNr]] = 0;
+	ledsR[ledMapping[noteNr]] = backgroundColor.r;
+	ledsG[ledMapping[noteNr]] = backgroundColor.g;
+	ledsB[ledMapping[noteNr]] = backgroundColor.b;
 }
+
 /**
 * This function writes intensity values for all LEDs into memory, according to current note velocities.
 * @param r Red intensity. Pass -1 to keep current value.
@@ -229,6 +240,17 @@ void ledSingleColorSetFull(int16_t r, int16_t g, int16_t b)
 	}
 
 }
+
+static void setBackgroundColor(uint8_t r, uint8_t g, uint8_t b)
+{
+	if (r == backgroundColor.r && g == backgroundColor.g && b == backgroundColor.b)
+		return;
+	backgroundColor.r = r;
+	backgroundColor.g = g;
+	backgroundColor.b = b;
+	ledSingleColorSetFull(r, g, b);
+}
+
 /**
 * This function writes a single LED intensity into memory, according to the provided LED number.
 * @param r Red intensity
@@ -404,6 +426,12 @@ void ledRenderAfterEffects(unsigned int mode)
 */
 void ledRenderFromNoteOn(unsigned char inputNote, unsigned int mode)
 {
+	if (mode == 53)
+	{
+		// for Peter Gunn intro, first note should turn on background
+		setBackgroundColor(0, 0, 50);
+	}
+
 	//Turning LED on happens in the same way for some modes
 	if((mode >= 2 && mode <= 14) || mode == 52 /* Treasure intro */)
 	{
@@ -451,6 +479,9 @@ void ledRenderFromNoteOn(unsigned char inputNote, unsigned int mode)
 			}
 
 			break;
+		case 53: // Peter Gunn intro
+			ledSingleColorUpdateLedOnMax(inputNote);
+			break;
 	}
 }
 /**
@@ -462,8 +493,8 @@ void ledRenderFromNoteOn(unsigned char inputNote, unsigned int mode)
 */
 void ledRenderFromNoteOff(unsigned char inputNote, unsigned int mode)
 {
-	//Turning LED off happens in the same way for the first 7 modes
-	if(mode >= 2 && mode <= 7)
+	//Turning LED off happens in the same way for the first 7 modes and some more
+	if((mode >= 2 && mode <= 7) || mode == 53 /* Peter Gunn intro */)
 	{
 		mode = 1;
 	}
@@ -519,6 +550,10 @@ static void ledModeChange(unsigned int modeNr)
 	{
 		modeNr = modeNr - 7;
 	}
+	if (modeNr != 53) // Peter Gunn intro
+	{
+		setBackgroundColor(0, 0, 0);
+	}
 	switch(modeNr)
 	{
 		case 1:
@@ -567,6 +602,11 @@ static void ledModeChange(unsigned int modeNr)
 		case 52: //Treasure intro!
 			rMax = 0;
 			gMax = 0;
+			bMax = ledMaxInt;
+			break;
+		case 53: // Peter Gunn intro
+			rMax = ledMaxInt;
+			gMax = ledMaxInt;
 			bMax = ledMaxInt;
 			break;
 		default:
