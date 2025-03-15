@@ -3,7 +3,7 @@
  *
  * Created: 6-12-2011 19:55:25
  *  Author: Daniël
- */ 
+ */
 
 
 #ifndef BV4513_H_
@@ -19,6 +19,7 @@ void BV4513_clear();
 //void BV4513_writeNextByte();
 void BV4513_writeDigit(unsigned char val, unsigned char pos);
 void BV4513_writeString(const char * s, int pos);
+void BV4513_writeString_P(const char * s, int pos);
 void BV4513_setDecimalPoint(unsigned char digit, unsigned char enable);
 void BV4513_setBrightness(unsigned char value);
 void BV4513_reset();

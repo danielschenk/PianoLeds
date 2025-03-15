@@ -60,16 +60,7 @@ void toggleHeartBeatLed()
 static void displayFirmwareVersion()
 {
 	BV4513_clear();
-
-	#if (VERSION_MINOR/10 >= 10)
-	static const char fmt[] PROGMEM = "v%1u.%2u";
-	#else
-	static const char fmt[] PROGMEM = "v %1u.%1u";
-	#endif
-
-	char s[8];
-	sprintf_P(s, fmt, VERSION_MAJOR, VERSION_MINOR);
-	BV4513_writeString(s, 0);
+	BV4513_writeString_P(c_displayVersionString, 0);
 }
 
 static void displayBuildNumber()

@@ -3,7 +3,7 @@
  *
  * Created: 6-12-2011 19:55:01
  *  Author: Daniël
- */ 
+ */
 
 #include "BV4513.h"
 #include "globals.h"
@@ -11,6 +11,7 @@
 #include <util/delay.h>
 #include <avr/pgmspace.h>
 #include <string.h>
+#include <stdbool.h>
 
 static const char char_table_start = '-';
 static const char char_table[] PROGMEM = {
@@ -94,7 +95,7 @@ static const char char_table[] PROGMEM = {
 	0x00, /* z */
 };
 
-void BV4513_init() 
+void BV4513_init()
 {
 	/*TWBR = 0x0C;
 	TWDR = 0xFF;    // Default content = SDA released.
@@ -102,7 +103,7 @@ void BV4513_init()
 		(1<<TWIE)|(1<<TWINT)|                      // Enable Interupt.*/
 	TWI_Master_Initialise();
 	BV4513_clear();
-	
+
 	/* Write back maximum brightness which is also the power-on default.
 	 * This prevents a different brightness value to stay in the display when
 	 * our software has reset. TODO: actually we should fully reset the display,
@@ -117,7 +118,7 @@ void BV4513_writeSegments(unsigned char segments, unsigned char pos)
 }
 
 /** @brief Write a digit to the display
- * 
+ *
  * Digit positions on the display when front-facing:
  * _________________________
  * |     |     |     |     |
@@ -138,14 +139,14 @@ void BV4513_writeNumber(int number)
 	BV4513_clear();
 	/* Least significant digit is at pos 3 on the display */
 	for(int8_t pos=3; pos>=0; pos--)
-	{ 
+	{
 		uint8_t digit_val = number % 10;
 		BV4513_writeDigit(digit_val, pos);
 		number /= 10;
 	}
 }
 
-void BV4513_writeString(const char * s, int pos)
+static void writeString(const char * s, int pos, bool progmem)
 {
 	BV4513_clear();
 	int curr_pos = pos;
@@ -153,8 +154,12 @@ void BV4513_writeString(const char * s, int pos)
 	{
 		if(curr_pos > 3)
 			break; /* Reached end of display */
-		
-		char c = *p;
+
+		char c;
+		if (progmem)
+			c = pgm_read_byte(p);
+		else
+			c = *p;
 		if(c == '.')
 		{
 			/* Special feature: enable dot on just-written position */
@@ -172,10 +177,20 @@ void BV4513_writeString(const char * s, int pos)
 			/* Fallback for non-supported chars is empty */
 			c = 0;
 		}
-		
+
 		BV4513_writeSegments(c, curr_pos);
 		curr_pos++;
 	}
+}
+
+void BV4513_writeString(const char * s, int pos)
+{
+	writeString(s, pos, false);
+}
+
+void BV4513_writeString_P(const char * s, int pos)
+{
+	writeString(s, pos, true);
 }
 
 void BV4513_clear()
