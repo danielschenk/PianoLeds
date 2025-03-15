@@ -343,7 +343,7 @@ void ledRenderAfterEffects(unsigned int mode)
 			}
 			break;
 		case 8:
-			for(int ledNr = 0; ledNr<ledsConnected; ledNr++)
+			for (int ledNr = 0; ledNr<ledsProgrammed; ledNr++)
 			{
 				if(ledsR[ledNr]>100)
 					ledsR[ledNr] = ledsR[ledNr] - ledsR[ledNr]/100;
