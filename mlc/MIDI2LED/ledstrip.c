@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #define MAX_INTENSITY UINT8_MAX
+#define NUM_ELEMENTS(array) (sizeof(array) / sizeof(array[0]))
 
 /**
  * Callback function for preset change events, triggered from model.
@@ -32,6 +33,39 @@ typedef struct
 	uint8_t g;
 	uint8_t b;
 } Color;
+
+typedef enum
+{
+	MODE_START_NO_SUSTAIN = 1,
+	MODE_RED = 1,
+	MODE_GREEN = 2,
+	MODE_BLUE = 3,
+	MODE_YELLOW = 4,
+	MODE_CYAN = 5,
+	MODE_MAGENTA = 6,
+	MODE_WHITE = 7,
+	MODE_END_NO_SUSTAIN = 8,
+
+	MODE_START_SUSTAIN = 8,
+	MODE_RED_SUSTAIN = 8,
+	MODE_GREEN_SUSTAIN = 9,
+	MODE_BLUE_SUSTAIN = 10,
+	MODE_YELLOW_SUSTAIN = 11,
+	MODE_CYAN_SUSTAIN = 12,
+	MODE_MAGENTA_SUSTAIN = 13,
+	MODE_WHITE_SUSTAIN = 14,
+	MODE_END_SUSTAIN = 15,
+
+	// specials
+	MODE_COPYRIGHT = 50,
+	MODE_COPYRIGHT_V2 = 51,
+	MODE_TREASURE_INTRO = 52,
+	MODE_PETER_GUNN = 53,
+	MODE_MULTICOLOR = 54,
+
+	// tests
+	MODE_FULL_STRIP_COLOR_CYCLE_TEST,
+} Mode;
 
 static const Color ledTestColors[] = {
 	{MAX_INTENSITY, 0, 0},
@@ -47,7 +81,7 @@ static const Color* ledTestColor = ledTestColors;
 
 static void LedTestTimerCallback(TimerId_t unused)
 {
-	const Color* end = &ledTestColors[sizeof(ledTestColors)/sizeof(Color)];
+	const Color* end = &ledTestColors[NUM_ELEMENTS(ledTestColors)];
 	if (++ledTestColor >= end)
 		ledTestColor = ledTestColors;
 }
@@ -71,6 +105,15 @@ static uint8_t ledsG[ledsProgrammed]; //!<Green intensity values
 static uint8_t ledsB[ledsProgrammed]; //!<Blue intensity values
 
 static Color backgroundColor = {0, 0, 0};
+
+static const Color multiColorColors[] = {
+	{MAX_INTENSITY, 0, 0},
+	{0, MAX_INTENSITY, 0},
+	{0, 0, MAX_INTENSITY},
+	{MAX_INTENSITY, MAX_INTENSITY, 0},
+	{MAX_INTENSITY, 0, MAX_INTENSITY},
+	{0, MAX_INTENSITY, MAX_INTENSITY},
+};
 
 /**
 * This method writes the mapping of note numbers to LED numbers in memory.
@@ -204,6 +247,21 @@ static void ledSingleColorUpdateLedOnMax(uint8_t noteNr)
     applyNewIntensityIfHigher(&ledsR[ledNumber], rMax);
     applyNewIntensityIfHigher(&ledsG[ledNumber], gMax);
     applyNewIntensityIfHigher(&ledsB[ledNumber], bMax);
+}
+
+static void multicolorLedOn(uint8_t noteNr)
+{
+	uint8_t velocity = notes[noteNr];
+    uint8_t ledNumber = ledMapping[noteNr];
+	static const Color* nextColor = multiColorColors;
+
+	ledsR[ledNumber] = velocityToIntensity(velocity, nextColor->r);
+	ledsG[ledNumber] = velocityToIntensity(velocity, nextColor->g);
+	ledsB[ledNumber] = velocityToIntensity(velocity, nextColor->b);
+
+	const Color* end = &multiColorColors[NUM_ELEMENTS(multiColorColors)];
+	if (++nextColor >= end)
+		nextColor = multiColorColors;
 }
 
 void ledSingleColorUpdateLedOff(uint8_t noteNr)
@@ -345,19 +403,19 @@ void ledRenderAfterEffects(unsigned int mode)
 {
 	#define freqDiv 2
 	//Rendering LEDs happens in the same way for modes 8-14
-	if(mode >= 9 && mode <= 14)
+	if((mode >= MODE_START_SUSTAIN && mode < MODE_END_SUSTAIN)
+		|| mode == MODE_MULTICOLOR)
 	{
-		mode = 8;
+		mode = MODE_START_SUSTAIN;
 	}
 	uint8_t note, r, g, b;
 	bool any_on;
 	switch(mode)
 	{
-		case 0:
-			// LED TEST
+		case MODE_FULL_STRIP_COLOR_CYCLE_TEST:
 			ledSingleColorSetFull(ledTestColor->r, ledTestColor->g, ledTestColor->b);
 			break;
-		case 8:
+		case MODE_START_SUSTAIN:
 			for (int ledNr = 0; ledNr<ledsProgrammed; ledNr++)
 			{
 				if(ledsR[ledNr]>100)
@@ -379,7 +437,7 @@ void ledRenderAfterEffects(unsigned int mode)
 					ledsB[ledNr]--;
 			}
 			break;
-		case 52: /* Treasure intro */
+		case MODE_TREASURE_INTRO:
 			/* In this mode, every silent note gets a red background based on the
 			 * expression pedal position. The background is only enabled when any note
 			 * is played, so first check if any note is played. */
@@ -426,26 +484,24 @@ void ledRenderAfterEffects(unsigned int mode)
 */
 void ledRenderFromNoteOn(unsigned char inputNote, unsigned int mode)
 {
-	if (mode == 53)
+	if (mode == MODE_PETER_GUNN)
 	{
-		// for Peter Gunn intro, first note should turn on background
+		// first note should turn on background
 		setBackgroundColor(0, 0, 50);
 	}
 
 	//Turning LED on happens in the same way for some modes
-	if((mode >= 2 && mode <= 14) || mode == 52 /* Treasure intro */)
+	if((mode >= MODE_START_NO_SUSTAIN && mode < MODE_END_SUSTAIN) || mode == MODE_TREASURE_INTRO)
 	{
-		mode = 1;
+		mode = MODE_START_NO_SUSTAIN;
 	}
 	switch(mode)
 	{
 		static uint8_t mode51 = 0;
-		case 1:
+		case MODE_START_NO_SUSTAIN:
 			ledSingleColorUpdateLedOn(rMax,gMax,bMax,inputNote);
 			break;
-		default:
-			break;
-		case 50: //Red and blue, determined by note number odd/even (Copyright!)
+		case MODE_COPYRIGHT: //Red and blue, determined by note number odd/even
 			if ((inputNote % 2) == 0)
 			{
 				ledSingleColorUpdateLedOn(rMax,0,0,inputNote);
@@ -455,7 +511,7 @@ void ledRenderFromNoteOn(unsigned char inputNote, unsigned int mode)
 				ledSingleColorUpdateLedOn(0,0,bMax,inputNote);
 			}
 			break;
-		case 51: //Red and blue, alternated from note to note (Copyright v2!)
+		case MODE_COPYRIGHT_V2: //Red and blue, alternated from note to note
 			if (ledsR[ledMapping[inputNote]] == 0 && ledsB[ledMapping[inputNote]] == 0)
 			{
 				if (mode51 == 0)
@@ -479,8 +535,13 @@ void ledRenderFromNoteOn(unsigned char inputNote, unsigned int mode)
 			}
 
 			break;
-		case 53: // Peter Gunn intro
+		case MODE_PETER_GUNN:
 			ledSingleColorUpdateLedOnMax(inputNote);
+			break;
+		case MODE_MULTICOLOR:
+			multicolorLedOn(inputNote);
+			break;
+		default:
 			break;
 	}
 }
@@ -494,20 +555,21 @@ void ledRenderFromNoteOn(unsigned char inputNote, unsigned int mode)
 void ledRenderFromNoteOff(unsigned char inputNote, unsigned int mode)
 {
 	//Turning LED off happens in the same way for the first 7 modes and some more
-	if((mode >= 2 && mode <= 7) || mode == 53 /* Peter Gunn intro */)
+	if((mode >= MODE_START_NO_SUSTAIN && mode < MODE_END_NO_SUSTAIN) || mode == MODE_PETER_GUNN)
 	{
-		mode = 1;
+		mode = MODE_START_NO_SUSTAIN;
 	}
-	if((mode >= 8 && mode <= 14) || mode == 50/*Copyright!*/ || mode == 51/*Copyright!*/)
+	if((mode >= MODE_START_SUSTAIN && mode < MODE_END_SUSTAIN)
+		|| mode == MODE_COPYRIGHT || mode == MODE_COPYRIGHT_V2 || mode == MODE_MULTICOLOR)
 	{
-		mode = 8;
+		mode = MODE_START_SUSTAIN;
 	}
 	switch(mode)
 	{
-		case 1:
+		case MODE_START_NO_SUSTAIN:
 			ledSingleColorUpdateLedOff(inputNote);
 			break;
-		case 8:
+		case MODE_START_SUSTAIN:
 			if(midiSustain == 0)
 				ledSingleColorUpdateLedOff(inputNote);
 			break;
@@ -518,17 +580,18 @@ void ledRenderFromNoteOff(unsigned char inputNote, unsigned int mode)
 
 void ledRenderFromSustain(unsigned char mode, unsigned char sustain)
 {
-	if(mode >= 2 && mode <= 7) //Non-sustain modes
+	if(mode >= MODE_START_NO_SUSTAIN && mode < MODE_END_NO_SUSTAIN) //Non-sustain modes
 	{
-		mode = 1;
+		mode = MODE_START_NO_SUSTAIN;
 	}
-	if((mode >= 8 && mode <= 14) || mode == 50/*Copyright!*/ || mode == 51/*Copyright!*/) //Sustain modes
+	if((mode >= MODE_START_SUSTAIN && mode < MODE_END_SUSTAIN)
+		|| mode == MODE_COPYRIGHT || mode == MODE_COPYRIGHT_V2 || mode == MODE_MULTICOLOR) //Sustain modes
 	{
-		mode = 8;
+		mode = MODE_START_SUSTAIN;
 	}
 	switch(mode)
 	{
-		case 8: //Switch off LEDs at release of sustain pedal
+		case MODE_START_SUSTAIN: //Switch off LEDs at release of sustain pedal
 			if(sustain == 0)
 			{
 				for(int noteNr = 0; noteNr<88; noteNr++)
@@ -546,65 +609,65 @@ void ledRenderFromSustain(unsigned char mode, unsigned char sustain)
 static void ledModeChange(unsigned int modeNr)
 {
 	//Modes 8-14 have the same intensity settings as modes 1-7
-	if(modeNr >= 8 && modeNr <= 14)
+	if(modeNr >= MODE_START_SUSTAIN && modeNr < MODE_END_SUSTAIN)
 	{
-		modeNr = modeNr - 7;
+		modeNr = modeNr - (MODE_END_SUSTAIN - MODE_START_SUSTAIN);
 	}
-	if (modeNr != 53) // Peter Gunn intro
+	if (modeNr != MODE_PETER_GUNN)
 	{
 		setBackgroundColor(0, 0, 0);
 	}
 	switch(modeNr)
 	{
-		case 1:
+		case MODE_RED:
 			rMax = ledMaxInt;
 			gMax = 0;
 			bMax = 0;
 			break;
-		case 2:
+		case MODE_GREEN:
 			rMax = 0;
 			gMax = ledMaxInt;
 			bMax = 0;
 			break;
-		case 3:
+		case MODE_BLUE:
 			rMax = 0;
 			gMax = 0;
 			bMax = ledMaxInt;
 			break;
-		case 4:
+		case MODE_YELLOW:
 			rMax = ledMaxInt;
 			gMax = ledMaxInt;
 			bMax = 0;
 			break;
-		case 5:
+		case MODE_CYAN:
 			rMax = 0;
 			gMax = ledMaxInt;
 			bMax = ledMaxInt;
 			break;
-		case 6:
+		case MODE_MAGENTA:
 			rMax = ledMaxInt;
 			gMax = 0;
 			bMax = ledMaxInt;
 			break;
-		case 7:
+		case MODE_WHITE:
 			rMax = ledMaxInt;
 			gMax = ledMaxInt;
 			bMax = ledMaxInt;
 			break;
-		case 50: //Copyright!
+		case MODE_COPYRIGHT:
 			rMax = ledMaxInt;
 			gMax = 0;
 			bMax = ledMaxInt;
-		case 51: //Copyright!
+		case MODE_COPYRIGHT_V2:
 			rMax = ledMaxInt;
 			gMax = 0;
 			bMax = ledMaxInt;
-		case 52: //Treasure intro!
+		case MODE_TREASURE_INTRO:
 			rMax = 0;
 			gMax = 0;
 			bMax = ledMaxInt;
 			break;
-		case 53: // Peter Gunn intro
+		case MODE_PETER_GUNN:
 			rMax = ledMaxInt;
 			gMax = ledMaxInt;
 			bMax = ledMaxInt;
