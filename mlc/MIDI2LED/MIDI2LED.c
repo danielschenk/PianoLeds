@@ -234,7 +234,7 @@ int main(void)
 	ConfigurationModel_SubscribeCurrentPreset(DisplayPresetChangedCallback);
 	if (!powerOnReset && !brownOutReset)
 	{
-		if (g_lastPreset ^ LAST_PRESET_XOR_MASK == g_lastPresetCheck)
+		if ((g_lastPreset ^ LAST_PRESET_XOR_MASK) == g_lastPresetCheck)
 		{
 			ConfigurationModel_SetCurrentPreset(g_lastPreset);
 		}
